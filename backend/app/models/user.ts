@@ -9,7 +9,7 @@ export default class User extends BaseModel {
     declare username: string | null
 
     @column()
-    declare firebaseUid: string // Firebase UID for integrating Firebase Auth
+    declare firebase_uid: string // Firebase UID for integrating Firebase Auth
 
     @column.dateTime({ autoCreate: true })
     declare createdAt: DateTime

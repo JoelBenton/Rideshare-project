@@ -1,6 +1,6 @@
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { AuthContext, AuthProvider } from '@/src/context/AuthContext';
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 
 const InitialLayout = () => {
@@ -10,22 +10,26 @@ const InitialLayout = () => {
 
   useEffect(() => {
     if (!initialized) return;
+    const inTabsGroup = segments[0] === '(tabs)';
+    const inAuthGroup = segments[0] === '(auth)';
 
-    if (user) {
-      router.replace('/(tabs)/home');
-    } else if (!user) {
+    // Dont redirect if in auth group
+    if (inAuthGroup) return;
+    if (user && !inTabsGroup) {
+      router.replace('/home');
+    } else  if (!user) {
       router.replace('/(auth)/login');
     }
-  }, [user, initialized]); // Runs when either user or initialised is changed
+  }, [user, initialized]);
 
   return <>{initialized ? <Slot /> : <ActivityIndicator size='large' />}</>;
 };
 
 const RootLayout = () => {
   return (
-      <AuthProvider>
-            <InitialLayout />
-      </AuthProvider>
+    <AuthProvider>
+      <InitialLayout />
+    </AuthProvider>
   );
 };
 

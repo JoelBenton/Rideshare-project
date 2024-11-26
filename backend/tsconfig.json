@@ -1,9 +1,9 @@
 {
-  "extends": "@adonisjs/tsconfig/tsconfig.app.json",
-  "compilerOptions": {
-    "rootDir": "./",
-    "outDir": "./build",
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-  }
+    "extends": "@adonisjs/tsconfig/tsconfig.app.json",
+    "compilerOptions": {
+        "rootDir": "./",
+        "outDir": "./build",
+        "resolveJsonModule": true,
+        "esModuleInterop": true
+    }
 }

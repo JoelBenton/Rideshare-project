@@ -10,7 +10,7 @@ import { defaultStyles } from '@/src/constants/themes';
 import { emailValidator, passwordValidator, confirmPasswordValidator } from '@/src/validators';
 
 const AuthPage: React.FC = () => {
-  const { handleAuth, error } = useAuth(); // Use the auth hook
+  const { handleAuth } = useAuth(); // Use the auth hook
   const [isSignUp, setIsSignUp] = useState(false); // Toggle between Login and Sign-Up
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -57,7 +57,6 @@ const AuthPage: React.FC = () => {
         const { success, error } = await handleAuth(email, password, username, true);
         if (success) {
           Alert.alert('Success', 'Account created successfully!');
-          console.log(error)
           setIsSignUp(false);
           router.replace('/(tabs)/home'); // Navigate to home after sign-up
         } else {

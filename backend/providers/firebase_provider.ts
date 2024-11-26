@@ -5,7 +5,6 @@ import serviceAccount from '../ServiceAccountKey.json' assert { type: 'json' }
 
 export default class FirebaseProvider {
     constructor(protected app: ApplicationService) {}
-
     /**
      * The container bindings have booted
      */
