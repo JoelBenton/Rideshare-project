@@ -1,0 +1,263 @@
+openapi: 3.0.0
+info:
+  title: Rideshare
+  description: "A Rideshare API"
+  version: 1.0.0
+servers:
+  - url: http://localhost:3333/
+    description: Development server
+paths:
+  /:
+    get:
+      summary: "Return the active API version"
+      tags:
+        - "General"
+      responses:
+        "200":
+          description: "The User Details including auth token."
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  version:
+                    type: "string"
+                    example: "1.0.0"
+                
+  /login:
+    post:
+      summary: "Login"
+      tags:
+        - "General"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:           
+                username:
+                  type: "string"
+                  example: "JohnDoe"
+      security:
+      - BearerAuth: []
+
+      responses:
+        "201":
+          description: "Successfully logged in"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  firebase_uid:
+                    type: "string"
+                  username:
+                    type: "string"
+        "401":
+          description: "Authorisation failure"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: "Conflict with Username"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: "Processing Error"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+
+  /locations:
+    get:
+      summary: "Get all locations"
+      tags:
+        - "Locations"
+      security:
+      - BearerAuth: []
+      responses:
+        "200":
+          description: "Successfully logged in"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  data:
+                    type: "array"
+                    items:
+                      $ref: '#/components/schemas/Location'
+        "401":
+          description: "Authorisation failure"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: "Processing Error"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+                
+    post:
+      summary: "Create a location"
+      tags:
+        - "Locations"
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:           
+                name:
+                  type: "string"
+                  example: "Asda, Folkstone"
+                address:
+                  type: "string"
+                  example: "Bouverie Pl, Folkestone CT20 1AU"
+                latitude:
+                  type: "number"
+                  example: 4
+                longitude:
+                  type: "number"
+                  example: 4
+      responses:
+        "201":
+          description: "Created Location"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Location"
+        "400":
+          description: "Validation error"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: "Authorisation failure"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: "Processing Error"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+  /locations/{id}:
+    get:
+      summary: "Get a location"
+      tags:
+        - "Locations"
+      security:
+      - BearerAuth: []
+      responses:
+        "200":
+          description: "Retrieved Location"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Location"
+        "401":
+          description: "Authorisation failure"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: "Location not found"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: "Processing Error"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: "Delete a location"
+      tags:
+        - "Locations"
+      security:
+      - BearerAuth: []
+      responses:
+        "204":
+          description: "Deleted Location"
+        "401":
+          description: "Authorisation failure"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: "Location not found"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: "Processing Error"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    Error:
+      type: "object"
+      properties:
+        error:
+          type: "string"
+          nullable: false
+    User:
+      type: "object"
+      properties:
+        id:
+          type: "number"
+          example: 1
+        username:
+          type: "string"
+          example: "johndoe"
+        admin:
+          type: "boolean"
+          example: false
+          default: false
+          nullable: true
+          description: "The set creation limit should only apply to non-admin users"
+
+    Location:
+      type: "object"
+      properties:
+        id:
+          type: "number"
+          example: 1
+        creator_uid:
+          type: "string"
+          example: "cgvhbjnklm"
+        public:
+          type: "boolean"
+          example: true
+        name:
+          type: "string"
+          example: "Location 1"
+        address:
+          type: "string"
+          example: "123 Main St"
+        latitude:
+          type: "number"
+          example: 37.7749
+        longitude:
+          type: "number"
+          example: -122.4194

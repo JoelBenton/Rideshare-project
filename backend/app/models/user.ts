@@ -3,13 +3,10 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 
 export default class User extends BaseModel {
     @column({ isPrimary: true })
-    declare id: number
+    declare firebase_uid: string // Firebase UID for integrating Firebase Auth
 
     @column()
     declare username: string | null
-
-    @column()
-    declare firebase_uid: string // Firebase UID for integrating Firebase Auth
 
     @column.dateTime({ autoCreate: true })
     declare createdAt: DateTime

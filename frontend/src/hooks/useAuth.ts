@@ -2,11 +2,14 @@
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, UserCredential } from 'firebase/auth';
 import { FIREBASE_AUTH } from '@/src/config/FirebaseConfig';
 import { setUserInformation } from '@/src/utils/auth';
+import { Platform } from 'react-native';
 
 export const useAuth = () => {
   const handleAuth = async (email: string, password: string, username: string, isSignUp: boolean) => {
     try {
       let userCredential: UserCredential | null = null;
+
+      const apiEndpoint = Platform.OS === 'ios' ? process.env.EXPO_PUBLIC_BACKEND_URL_IOS : process.env.EXPO_PUBLIC_BACKEND_URL_ANDROID;
 
       // Try to sign in with email and password
       try {
@@ -36,8 +39,12 @@ export const useAuth = () => {
       // Get the Firebase ID token (JWT)
       const idToken = await userCredential.user.getIdToken();
 
+      if (!isSignUp) {
+        username = userCredential.user.displayName;
+      }
+
       // Send the ID token and username to the backend for registration/login
-      const response = await fetch(`${process.env.EXPO_PUBLIC_BACKEND_URL}/login`, {
+      const response = await fetch(`${apiEndpoint}/login`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${idToken}`,

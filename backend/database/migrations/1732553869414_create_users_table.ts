@@ -5,9 +5,8 @@ export default class extends BaseSchema {
 
     async up() {
         this.schema.createTable(this.tableName, (table) => {
-            table.increments('id').notNullable()
+            table.string('firebase_uid').notNullable().unique().primary()
             table.string('username').nullable().unique()
-            table.string('firebase_uid').notNullable().unique()
             table.enum('role', ['user', 'admin']).notNullable().defaultTo('user')
             table.timestamps(true, true)
         })

@@ -33,7 +33,7 @@ const ProfileScreen = () => {
       <View style={styles.profileSection}>
         <Avatar.Image
           size={128}
-          source={require('../../../src/assets/PlaceholderAvatar.png')}
+          source={require('../../../assets/PlaceholderAvatar.png')}
           style={styles.avatarShadow}
         />
         <Text style={styles.username}>{user.displayName}</Text>

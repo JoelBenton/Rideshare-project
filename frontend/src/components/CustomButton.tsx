@@ -13,7 +13,7 @@ interface CustomButtonProps {
 const CustomButton: React.FC<CustomButtonProps> = ({ title, onPress, buttonStyle, textStyle }) => {
 
   const [fontsLoaded, fontError] = useFonts({
-    'InknutAntiqua_600SemiBold': require('./../assets/Fonts/InknutAntiqua-SemiBold.ttf')
+    'InknutAntiqua_600SemiBold': require('@/assets/Fonts/InknutAntiqua-SemiBold.ttf')
   })
 
   if (fontError) {
