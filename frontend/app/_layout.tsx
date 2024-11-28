@@ -17,7 +17,7 @@ const InitialLayout = () => {
     if (inAuthGroup) return;
     if (user && !inTabsGroup) {
       router.replace('/home');
-    } else  if (!user) {
+    } else if (!user) {
       router.replace('/(auth)/login');
     }
   }, [user, initialized]);

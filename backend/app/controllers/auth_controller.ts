@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import User from '#models/user'
+import { syncUsersWithSQLite } from '../helper/auth_helper.js'
 
 export default class AuthController {
     // Register or login a user (No Admin Creation allowed, Will be handled by seperate route)
@@ -7,6 +8,8 @@ export default class AuthController {
         const payload = request.all()
         const uid = payload.authUid
         const username = payload.username
+
+        await syncUsersWithSQLite()
 
         try {
             // Check if user already exists in the database

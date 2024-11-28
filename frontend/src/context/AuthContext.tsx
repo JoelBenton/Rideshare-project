@@ -19,8 +19,13 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
   useEffect(() => {
     onAuthStateChanged(FIREBASE_AUTH, (user) => {
-      setUser(user);
-      setInitialized(true);
+      if (!user) {
+        setInitialized(true);
+        setUser(undefined);
+      } else {
+        setUser(user);
+        setInitialized(true);
+      }
     });
   }, []);
 

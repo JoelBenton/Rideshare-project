@@ -13,7 +13,7 @@ const HomePage: React.FC = () => {
     endName: 'Asda',
     endTown: 'Folkestone',
     usedCapacity: 3,
-    totalCapacity: 4
+    totalCapacity: 4,
   };
 
   return (
@@ -31,6 +31,9 @@ const HomePage: React.FC = () => {
         <RideCard cardStyle={styles.cardStyle} showButton={false} data={testData} />
         <CustomButton title="See More" buttonStyle={styles.smallButton} />
       </View>
+
+      {/* Spacer to push buttons to the bottom */}
+      <View style={styles.spacer} />
 
       {/* Action Buttons */}
       <View style={styles.buttonGroup}>
@@ -63,11 +66,11 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '600',
     color: '#4B0082',
     marginBottom: 15,
-    alignSelf: 'center'
+    alignSelf: 'center',
   },
   cardStyle: {
     backgroundColor: '#ff7777',
@@ -93,12 +96,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 3,
   },
+  spacer: {
+    flexGrow: 1, // Pushes the buttons to the bottom
+  },
   buttonGroup: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
     justifyContent: 'space-between',
     width: '100%',
-    marginTop: 20,
+    marginBottom: 10, // Adds spacing between the button group and the full-width button
   },
   halfButton: {
     backgroundColor: '#6a0dad',
@@ -116,7 +121,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 10,
     paddingVertical: 12,
-    marginTop: 10,
+    marginBottom: 10, // Adds spacing from the bottom of the screen
     elevation: 3,
     shadowColor: '#373737',
     shadowOffset: { width: 0, height: 2 },

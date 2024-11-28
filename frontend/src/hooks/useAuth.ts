@@ -54,15 +54,25 @@ export const useAuth = () => {
       });
 
       if (!response.ok) {
-        // Handle failure and delete the newly created user if registration fails
         if (isSignUp && userCredential && !userCredential.user.emailVerified) {
           await userCredential.user.delete();
+          await FIREBASE_AUTH.signOut();
         }
+
+        if (response.status === 409) {
+          return { success: false, error: 'Username already in use. Please choose a different username.' };
+        }
+        // Handle failure and delete the newly created user if registration fails
+        
         return { success: false, error: 'Authentication failed. Please try again.' };
       }
 
       return { success: true };
     } catch (error) {
+      if (isSignUp) {
+          await FIREBASE_AUTH.currentUser.delete();
+      }
+      await FIREBASE_AUTH.signOut();
       return { success: false, error: 'Authentication failed. Please try again.' };
     }
   }
