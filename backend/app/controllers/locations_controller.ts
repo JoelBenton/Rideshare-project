@@ -43,6 +43,7 @@ export default class LocationsController {
 
             return response.created({ data: location })
         } catch (error) {
+            console.log(error)
             if (error.code === 'E_VALIDATION_ERROR') {
                 return response.badRequest({ error: 'locations/validation-error' })
             } else {

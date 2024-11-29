@@ -9,7 +9,6 @@ export default class extends BaseSchema {
             table
                 .string('creator_uid')
                 .notNullable()
-                .unique()
                 .unsigned()
                 .references('firebase_uid')
                 .inTable('users')

@@ -10,6 +10,7 @@
 const AuthController = () => import('#controllers/auth_controller')
 const LocationsController = () => import('#controllers/locations_controller')
 import router from '@adonisjs/core/services/router'
+import { middleware } from './kernel.js'
 
 // All routes have firebase auth middleware applied by default
 
@@ -18,5 +19,11 @@ router.get('/', () => {
         message: 'Hello World!',
     }
 })
-router.post('/login', [AuthController, 'registerOrLogin'])
-router.resource('/locations', LocationsController).apiOnly()
+router.post('/check-username', [AuthController, 'checkUsername'])
+
+router
+    .group(() => {
+        router.post('/sync-database', () => {}) // Middleware syncs database. This route is just to call the middleware which syncs the database
+        router.resource('/locations', LocationsController).apiOnly()
+    })
+    .use(middleware.auth())

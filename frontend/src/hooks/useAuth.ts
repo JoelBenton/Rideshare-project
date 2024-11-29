@@ -1,34 +1,48 @@
-// src/hooks/useAuth.ts
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, UserCredential } from 'firebase/auth';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  UserCredential,
+} from 'firebase/auth';
 import { FIREBASE_AUTH } from '@/src/config/FirebaseConfig';
 import { setUserInformation } from '@/src/utils/auth';
-import { Platform } from 'react-native';
 
 export const useAuth = () => {
   const handleAuth = async (email: string, password: string, username: string, isSignUp: boolean) => {
     try {
       let userCredential: UserCredential | null = null;
+      const apiEndpoint = process.env.EXPO_PUBLIC_BACKEND_URL;
 
-      const apiEndpoint = Platform.OS === 'ios' ? process.env.EXPO_PUBLIC_BACKEND_URL_IOS : process.env.EXPO_PUBLIC_BACKEND_URL_ANDROID;
+      // Step 1: Validate username and email on the backend if signing up
+      if (isSignUp) {
+        const validationResponse = await fetch(`${apiEndpoint}/check-username`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, username }),
+        });
 
-      // Try to sign in with email and password
+        if (!validationResponse.ok) {
+          const { error } = await validationResponse.json();
+          return { success: false, error };
+        }
+      }
+
+      // Step 2: Firebase Authentication (sign-in or sign-up)
       try {
         if (!isSignUp) {
           // Sign-in logic
           userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
         } else {
           // Sign-up logic
-          userCredential =await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
-      
+          userCredential = await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
+          
           // Set user information (username)
           await setUserInformation(userCredential, { displayName: username });
         }
       } catch (error) {
-        // Handle errors for both sign-in and sign-up
         if (!isSignUp && error.code === 'auth/invalid-credential') {
           return { success: false, error: 'Invalid email or password. Please try again.' };
         }
-      
+
         if (isSignUp && error.code === 'auth/email-already-in-use') {
           return { success: false, error: 'Email already in use. Please use a different email.' };
         }
@@ -36,46 +50,30 @@ export const useAuth = () => {
         return { success: false, error: 'Authentication error: ' + error.message };
       }
 
-      // Get the Firebase ID token (JWT)
+      // Step 3: Get the Firebase ID token (JWT)
       const idToken = await userCredential.user.getIdToken();
 
-      if (!isSignUp) {
-        username = userCredential.user.displayName;
-      }
-
-      // Send the ID token and username to the backend for registration/login
-      const response = await fetch(`${apiEndpoint}/login`, {
+      // Step 4: Sync database with the backend
+      const response =await fetch(`${apiEndpoint}/sync-database`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${idToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username }),
       });
 
-      if (!response.ok) {
-        if (isSignUp && userCredential && !userCredential.user.emailVerified) {
-          await userCredential.user.delete();
-          await FIREBASE_AUTH.signOut();
-        }
-
-        if (response.status === 409) {
-          return { success: false, error: 'Username already in use. Please choose a different username.' };
-        }
-        // Handle failure and delete the newly created user if registration fails
-        
-        return { success: false, error: 'Authentication failed. Please try again.' };
-      }
+      console.log(response)
 
       return { success: true };
     } catch (error) {
-      if (isSignUp) {
-          await FIREBASE_AUTH.currentUser.delete();
+      if (isSignUp && FIREBASE_AUTH.currentUser) {
+        await FIREBASE_AUTH.signOut();
+        return { success: false, error: 'User Created Successfully. However unexpected error occurred, Please try logging in!' };
       }
-      await FIREBASE_AUTH.signOut();
+      console.log(error);
       return { success: false, error: 'Authentication failed. Please try again.' };
     }
-  }
+  };
 
   return { handleAuth };
-}
+};

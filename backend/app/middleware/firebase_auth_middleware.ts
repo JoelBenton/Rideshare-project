@@ -1,6 +1,7 @@
 import { HttpContext } from '@adonisjs/core/http'
 import { NextFn } from '@adonisjs/core/types/http'
 import admin from 'firebase-admin'
+import { syncUsersWithSQLite } from '../helper/auth_helper.js'
 
 export default class FirebaseAuthMiddleware {
     async handle(ctx: HttpContext, next: NextFn) {
@@ -14,6 +15,7 @@ export default class FirebaseAuthMiddleware {
             const { uid } = decodedToken
 
             ctx.request.all().authUid = uid
+            await syncUsersWithSQLite()
             await next()
         } catch (error) {
             return ctx.response.unauthorized({ error: 'auth/invalid-token' })

@@ -122,6 +122,8 @@ paths:
                 address:
                   type: "string"
                   example: "Bouverie Pl, Folkestone CT20 1AU"
+                public:
+                  type: "boolean"
                 latitude:
                   type: "number"
                   example: 4
