@@ -89,3 +89,31 @@ export const getLocation = async (location_id: string) => {
         return { success: false };
     }
 };
+
+export const updateLocation = async (location_id: string, location: Location) => {
+    try {
+        const idToken = await FIREBASE_AUTH.currentUser?.getIdToken();
+        const response = await fetch(`${apiEndpoint}/locations/${location_id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}`
+            },
+            body: JSON.stringify(location),
+        });
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                Alert.alert("Session expired", "Please login again.");
+                await signOut(FIREBASE_AUTH);
+                router.push('/(auth)/login');
+            }
+            return { success: false };
+        }
+
+        const data = await response.json();
+        return { success: true, data: data.data as Location };
+    } catch (error) {
+        return { success: false };
+    }
+};

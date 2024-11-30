@@ -1,9 +1,8 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Modal,
   View,
   TextInput,
-  Button,
   Alert,
   StyleSheet,
 } from "react-native";
@@ -11,10 +10,33 @@ import MapView, { Marker, UrlTile } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomButton from "./CustomButton";
 
-const LocationSearchModal = ({ visible, onClose, onLocationSelected }) => {
+const LocationSearchModal = ({ visible, onClose, onLocationSelected, location = null }) => {
   const [query, setQuery] = useState(""); // User's search query
-  const [marker, setMarker] = useState(null); // Selected marker
+  const [marker, setMarker] = useState(location ? {
+    coordinate: { latitude: location.latitude, longitude: location.longitude },
+    title: location.name || "Selected Location",
+  } : null); // Initial marker if location is provided
   const mapRef = useRef(null); // Reference to the map
+
+  useEffect(() => {
+    // If a location is passed, set the map to focus on it
+    if (location) {
+      setMarker({
+        coordinate: { latitude: location.latitude, longitude: location.longitude },
+        title: location.name || "Selected Location",
+      });
+
+      mapRef.current?.animateToRegion(
+        {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
+        },
+        1000
+      );
+    }
+  }, [location]);
 
   const searchLocation = async () => {
     if (!query.trim()) {
@@ -90,7 +112,6 @@ const LocationSearchModal = ({ visible, onClose, onLocationSelected }) => {
         },
       });
       const data = await response.json();
-      console.log(data);
       const fullAddress = data.display_name || "Unknown location";
 
       onLocationSelected({ lat: latitude, lng: longitude, address: fullAddress });
@@ -108,13 +129,13 @@ const LocationSearchModal = ({ visible, onClose, onLocationSelected }) => {
             value={query}
             onChangeText={setQuery}
           />
-          <CustomButton title="Search" onPress={searchLocation} buttonStyle={styles.button}/>
+          <CustomButton title="Search" onPress={searchLocation} buttonStyle={styles.button} />
 
           <MapView
             ref={mapRef}
             style={styles.map}
             initialRegion={{
-              latitude: 51.08, // Default to a location centered around Ashford, UK
+              latitude: 51.08, // Default to Ashford, UK
               longitude: 0.85,
               latitudeDelta: 0.3,
               longitudeDelta: 0.3,
@@ -135,8 +156,8 @@ const LocationSearchModal = ({ visible, onClose, onLocationSelected }) => {
           </MapView>
 
           <View style={styles.buttonContainer}>
-            <CustomButton title="Confirm Location" onPress={confirmLocation} buttonStyle={styles.button}/>
-            <CustomButton title="Cancel" onPress={onClose} buttonStyle={styles.button}/>
+            <CustomButton title="Confirm Location" onPress={confirmLocation} buttonStyle={styles.button} />
+            <CustomButton title="Cancel" onPress={onClose} buttonStyle={styles.button} />
           </View>
         </View>
       </SafeAreaView>
@@ -183,7 +204,7 @@ const styles = StyleSheet.create({
     width: "48%",
     height: 40,
     marginHorizontal: 2,
-    marginVertical: 5
+    marginVertical: 5,
   },
 });
 

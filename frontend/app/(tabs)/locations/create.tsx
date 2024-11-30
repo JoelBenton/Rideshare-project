@@ -25,6 +25,36 @@ const CreateLocationPage = () => {
     setIsModalVisible(false);
   };
 
+  const createLocation = async () => {
+      // Create the location object
+      const location: createLocation = {
+        name,
+        public: isPublic,
+        address,
+        latitude: Number(coordinates.lat),
+        longitude: Number(coordinates.lon),
+      };
+  
+      const { success } = await createLocations(location);
+  
+      if (!success) {
+        Alert.alert('Error', 'Failed to create location. Please try again.');
+        return;
+      }
+  
+      // Show success alert
+      Alert.alert('Success', 'Location created successfully.');
+      router.back();
+  
+      // Proceed with location creation (e.g., send data to the backend)
+      console.log({
+        name,
+        isPublic,
+        address,
+        coordinates,
+      });
+  }
+
   const handleCreateLocation = async () => {
     // Check for required fields before proceeding
     if (!name.trim() || !address.trim() || !coordinates.lat || !coordinates.lon) {
@@ -40,45 +70,19 @@ const CreateLocationPage = () => {
         [
           {
             text: "Cancel",
-            onPress: () => console.log("Cancel Pressed"),
+            onPress: () => {return},
             style: "cancel",
           },
           {
             text: "OK",
-            onPress: () => console.log("OK Pressed"),
+            onPress: () => {createLocation()},
           },
         ],
         { cancelable: false }
       );
+    } else {
+      createLocation();
     }
-
-    // Create the location object
-    const location: createLocation = {
-      name,
-      public: isPublic,
-      address,
-      latitude: Number(coordinates.lat),
-      longitude: Number(coordinates.lon),
-    };
-
-    const { success } = await createLocations(location);
-
-    if (!success) {
-      Alert.alert('Error', 'Failed to create location. Please try again.');
-      return;
-    }
-
-    // Show success alert
-    Alert.alert('Success', 'Location created successfully.');
-    router.back();
-
-    // Proceed with location creation (e.g., send data to the backend)
-    console.log({
-      name,
-      isPublic,
-      address,
-      coordinates,
-    });
   };
 
   return (
