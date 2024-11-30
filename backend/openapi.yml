@@ -23,50 +23,37 @@ paths:
                   version:
                     type: "string"
                     example: "1.0.0"
-                
-  /login:
+  /check-username:
     post:
-      summary: "Login"
       tags:
         - "General"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              properties:           
-                username:
-                  type: "string"
-                  example: "JohnDoe"
-      security:
-      - BearerAuth: []
-
+      summary: "Check if a username is available"
       responses:
-        "201":
-          description: "Successfully logged in"
+        "200":
+          description: "Username Available"
+        "409":
+          description: "Username taken"
           content:
             application/json:
               schema:
-                type: "object"
-                properties:
-                  firebase_uid:
-                    type: "string"
-                  username:
-                    type: "string"
-        "401":
-          description: "Authorisation failure"
-          content:
-            application/json:
-              schema: 
-                $ref: "#/components/schemas/Error"
-        "409":
-          description: "Conflict with Username"
-          content:
-            application/json:
-              schema: 
                 $ref: "#/components/schemas/Error"
         "500":
           description: "Processing Error"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+
+  /sync-database:
+    post:
+      tags:
+        - "General"
+      summary: "Syncronise Local Database with Firebase Auth content."
+      responses:
+        "200":
+          description: "Syncronised"
+        "401":
+          description: "Authorisation failure"
           content:
             application/json:
               schema: 
@@ -169,6 +156,63 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Location"
+        "401":
+          description: "Authorisation failure"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: "Location not found"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: "Processing Error"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: "Update a location"
+      tags:
+        - "Locations"
+      security:
+      - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:           
+                name:
+                  type: "string"
+                  example: "Asda, Folkstone"
+                address:
+                  type: "string"
+                  example: "Bouverie Pl, Folkestone CT20 1AU"
+                public:
+                  type: "boolean"
+                latitude:
+                  type: "number"
+                  example: 4
+                longitude:
+                  type: "number"
+                  example: 4
+      responses:
+        "200":
+          description: "Updated Location"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Location"
+        "400":
+          description: "Validation error"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
         "401":
           description: "Authorisation failure"
           content:
