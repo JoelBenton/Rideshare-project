@@ -1,4 +1,6 @@
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
+import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import User from './user.js'
 
 export default class Locations extends BaseModel {
     @column({ isPrimary: true })
@@ -21,4 +23,7 @@ export default class Locations extends BaseModel {
 
     @column()
     declare longitude: number
+
+    @belongsTo(() => User, { foreignKey: 'creator_uid' })
+    declare creator: BelongsTo<typeof User>
 }

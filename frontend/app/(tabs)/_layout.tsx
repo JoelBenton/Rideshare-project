@@ -35,7 +35,6 @@ export default () => {
             <Tabs.Screen name="chat" options={{ tabBarLabel: 'Chat' }} />
             <Tabs.Screen name="profile" options={{ tabBarLabel: 'Profile' }} />
             <Tabs.Screen name='locations' options={{ tabBarLabel: 'Locations' }}/>
-            <Tabs.Screen name='settings' options={{ tabBarLabel: 'Settings'}} />
         </Tabs>
     )
 }

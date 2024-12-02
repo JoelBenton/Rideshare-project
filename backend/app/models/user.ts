@@ -1,5 +1,7 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
+import type { HasMany } from '@adonisjs/lucid/types/relations'
+import Trip from './trip.js'
 
 export default class User extends BaseModel {
     @column({ isPrimary: true })
@@ -16,4 +18,7 @@ export default class User extends BaseModel {
 
     @column()
     declare role: 'user' | 'admin'
+
+    @hasMany(() => Trip)
+    declare trips: HasMany<typeof Trip>
 }
