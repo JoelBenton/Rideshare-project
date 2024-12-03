@@ -1,9 +1,19 @@
+import { FIREBASE_AUTH } from "@/src/config/FirebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router"
 import React from "react";
 import { TextStyle, StyleSheet } from "react-native";
 
 export default () => {
+    const [admin, setAdmin] = React.useState(false);
+
+    FIREBASE_AUTH.currentUser?.getIdTokenResult(true).then((token) => {
+        const role = token.claims.role;
+        if (role == 'admin') {
+            setAdmin(true);
+        }
+    })
+
     return (
         <Tabs
         screenOptions={({ route }) => ({
@@ -13,14 +23,14 @@ export default () => {
                 
                 if (route.name === 'home') {
                     iconName = focused ? 'home' : 'home-outline';
-                } else if (route.name === 'settings') {
-                    iconName = focused ? 'settings' : 'settings-outline';
                 } else if (route.name === 'chat') {
                     iconName = focused ? 'chatbox' : 'chatbox-outline';
                 } else if (route.name === 'locations') {
                     iconName = focused ? 'location-sharp' : 'location-outline';
                 } else if (route.name === 'profile') {
                     iconName = focused ? 'person-circle-sharp' : 'person-circle-outline';
+                } else if (route.name === 'admin') {
+                    iconName = focused ? 'shield-checkmark' : 'shield-outline';
                 }
                 
                 return <Ionicons name={iconName} size={size} color={color} />;
@@ -35,6 +45,7 @@ export default () => {
             <Tabs.Screen name="chat" options={{ tabBarLabel: 'Chat' }} />
             <Tabs.Screen name="profile" options={{ tabBarLabel: 'Profile' }} />
             <Tabs.Screen name='locations' options={{ tabBarLabel: 'Locations' }}/>
+            <Tabs.Screen name="admin" options={{ tabBarLabel: 'Admin', href: admin ? '/(tabs)/admin' : null}} />
         </Tabs>
     )
 }
