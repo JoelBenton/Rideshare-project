@@ -62,15 +62,12 @@ export const useAuth = () => {
         },
       });
 
-      console.log(response)
-
       return { success: true };
     } catch (error) {
       if (isSignUp && FIREBASE_AUTH.currentUser) {
         await FIREBASE_AUTH.signOut();
         return { success: false, error: 'User Created Successfully. However unexpected error occurred, Please try logging in!' };
       }
-      console.log(error);
       return { success: false, error: 'Authentication failed. Please try again.' };
     }
   };

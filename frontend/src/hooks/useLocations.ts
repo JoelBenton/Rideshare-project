@@ -1,119 +1,70 @@
-import type { createLocation as cLocation, Location } from '@/src/utils/types';
-import { FIREBASE_AUTH } from '../config/FirebaseConfig';
-import { router } from 'expo-router';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createLocation, deleteLocation, fetchLocation, fetchLocations, updateLocation } from '../api/locations';
+import type { createLocation as cLocation, Location } from '../utils/types';
 import { Alert } from 'react-native';
-import { signOut } from 'firebase/auth';
 
-
-const apiEndpoint = process.env.EXPO_PUBLIC_BACKEND_URL;
-
-export const getLocations = async () => {
-    try {
-
-        const idToken = await FIREBASE_AUTH.currentUser?.getIdToken();
-        const response = await fetch(`${apiEndpoint}/locations`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${idToken}`
-            },
-        });
-
-        if (!response.ok) {
-            if (response.status === 401) {
-                Alert.alert("Session expired", "Please login again.");
-                await signOut(FIREBASE_AUTH);
-                router.push('/(auth)/login');
-            }
-            return { success: false };
-        }
-
-        const data = await response.json();
-        return { success: true, data: data.data as Location[] };
-    } catch (error) {
-        return { success: false };
-    }
+const QUERY_KEYS = {
+    LOCATIONS: ['locations'],
+    LOCATION: (id: number) => ['location', id],
 };
 
-export const createLocations = async (location: cLocation) => {
-    try {
-        const idToken = await FIREBASE_AUTH.currentUser?.getIdToken();
-        const response = await fetch(`${apiEndpoint}/locations`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${idToken}`
-            },
-            body: JSON.stringify(location),
-        });
+export const useLocations = () => {
+    return useQuery({
+        queryKey: QUERY_KEYS.LOCATIONS,
+        queryFn: fetchLocations,
+    });
+}
 
-        if (!response.ok) {
-            if (response.status === 401) {
-                Alert.alert("Session expired", "Please login again.");
-                await signOut(FIREBASE_AUTH);
-                router.push('/(auth)/login');
-            }
-            return { success: false };
+export const useLocation = (id: number) => {
+    return useQuery({
+        queryKey: QUERY_KEYS.LOCATION(id),
+        queryFn: () => fetchLocation(id.toString()),
+        enabled: !!id
+    });
+}
+
+export const useCreateLocation = (location: cLocation) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: () => createLocation(location),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.LOCATIONS });
+            return true;
+        },
+        onError: () => {
+            return false;
         }
+    });
+}
 
-        const data = await response.json();
-        return { success: true, data: data as Location };
-    } catch (error) {
-        return { success: false };
-    }
-};
-
-export const getLocation = async (location_id: string) => {
-    try {
-        const idToken = await FIREBASE_AUTH.currentUser?.getIdToken();
-        const response = await fetch(`${apiEndpoint}/locations/${location_id}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${idToken}`
-            },
-        });
-
-        if (!response.ok) {
-            if (response.status === 401) {
-                Alert.alert("Session expired", "Please login again.");
-                await signOut(FIREBASE_AUTH);
-                router.push('/(auth)/login');
-            }
-            return { success: false };
+export const useUpdateLocation = (id: number, location: Location) => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: () => updateLocation(id.toString(), location),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.LOCATIONS });
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.LOCATION(id) });
+            Alert.alert('Success', 'Location updated successfully.');
+            return true;
+        },
+        onError: () => {
+            Alert.alert('Error', 'Failed to update location.');
+            return false;
         }
+    });
+}
 
-        const data = await response.json();
-        return { success: true, data: data.data as Location };
-    } catch (error) {
-        return { success: false };
-    }
-};
+export const useDeleteLocation = (id: number) => {
+    const queryClient = useQueryClient();
 
-export const updateLocation = async (location_id: string, location: Location) => {
-    try {
-        const idToken = await FIREBASE_AUTH.currentUser?.getIdToken();
-        const response = await fetch(`${apiEndpoint}/locations/${location_id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${idToken}`
-            },
-            body: JSON.stringify(location),
-        });
-
-        if (!response.ok) {
-            if (response.status === 401) {
-                Alert.alert("Session expired", "Please login again.");
-                await signOut(FIREBASE_AUTH);
-                router.push('/(auth)/login');
-            }
-            return { success: false };
+    return useMutation({
+        mutationFn: () => deleteLocation(id.toString()),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.LOCATIONS });
+            return true;
+        },
+        onError: () => {
+            return false;
         }
-
-        const data = await response.json();
-        return { success: true, data: data.data as Location };
-    } catch (error) {
-        return { success: false };
-    }
-};
+    });
+}

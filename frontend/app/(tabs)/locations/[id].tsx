@@ -4,8 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { defaultStyles } from '@/src/constants/themes';
 import CustomButton from '@/src/components/CustomButton';
 import type { Location } from '@/src/utils/types';
-import { getLocation, updateLocation } from '@/src/hooks/useLocations'; // Ensure `updateLocation` exists in your hook
-import { useGlobalSearchParams } from 'expo-router';
+import { useLocation, useUpdateLocation, useDeleteLocation } from '@/src/hooks/useLocations';
+import { useGlobalSearchParams, useRouter } from 'expo-router';
 import LocationModal from '@/src/components/LocationModal';
 import { ActivityIndicator } from 'react-native-paper';
 import { FIREBASE_AUTH } from '@/src/config/FirebaseConfig';
@@ -13,32 +13,31 @@ import LocationSearchModal from '@/src/components/LocationSearchModal';
 
 const CreateLocationPage = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [location, setLocation] = useState<Location>();
+  const [updatedLocation, setUpdatedLocation] = useState<Location | null>(null);
   const [loading, setLoading] = useState(true);
   const [canEdit, setCanEdit] = useState(false);
   const [isEditing, setEditing] = useState(false);
-  const [updatedLocation, setUpdatedLocation] = useState<Location | null>(null);
 
   const { id } = useGlobalSearchParams<{ id: string }>();
 
-  useEffect(() => {
-    fetchLocations();
-  }, []);
+  const router = useRouter();
 
-  const fetchLocations = async () => {
-    setLoading(true);
-    const { success, data } = await getLocation(id);
-    if (success) {
-      setLocation(data);
-      setUpdatedLocation(data);
-      if (data.creatorUid === FIREBASE_AUTH.currentUser?.uid) {
+  // Use React Query hook to fetch location data
+  const { data: location, isLoading } = useLocation(Number(id));
+  const { mutateAsync: updateLocation } = useUpdateLocation(Number(id), updatedLocation as Location);
+  const { mutateAsync: deleteLocation } = useDeleteLocation(Number(id));
+
+  useEffect(() => {
+    if (location) {
+      setUpdatedLocation(location.data);
+      if (location.data.creatorUid === FIREBASE_AUTH.currentUser?.uid) {
         setCanEdit(true);
       }
     } else {
-      setLocation(undefined);
+      setUpdatedLocation(null);
     }
     setLoading(false);
-  };
+  }, [location]);
 
   const handleViewLocation = () => {
     setIsModalVisible(true);
@@ -46,60 +45,59 @@ const CreateLocationPage = () => {
 
   const handleToggleEdit = () => {
     setEditing(!isEditing);
-    if (!isEditing) {
-      // Reset changes when exiting edit mode
-      setUpdatedLocation(location);
+  };
+
+  const handleDeleteLocation = async () => {
+    try {
+      const success = await deleteLocation();
+      if (success) {
+        Alert.alert('Success', 'Location deleted successfully.');
+        router.back();
+      } else {
+        Alert.alert('Error', 'Failed to delete location.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'An error occurred while deleting the location.');
     }
   };
 
   const saveChanges = async () => {
-        setLoading(true);
-        const { success } = await updateLocation(id, updatedLocation); // Update API call
-        if (success) {
-            //   setLocation(updatedLocation);
-            Alert.alert('Success', 'Location updated successfully.');
-            setEditing(false);
-        } else {
-            Alert.alert('Error', 'Failed to update location.');
-        }
-        setLoading(false);
-  }
+    if (updatedLocation) {
+      const success = await updateLocation();
+
+      if (success) {
+        setEditing(false);
+      }
+    }
+  };
 
   const handleSaveChanges = async () => {
     if (updatedLocation?.public) {
-        Alert.alert(
-          "Confirm your choice",
-          "Are you sure you want to create a public location? This location will be visible to all users.",
-          [
-            {
-              text: "Cancel",
-              onPress: () => {return},
-              style: "cancel",
-            },
-            {
-              text: "OK",
-              onPress: () => {saveChanges()},
-            },
-          ],
-          { cancelable: false }
-        );
-      }
-    if (!updatedLocation) return;
-    saveChanges();
+      Alert.alert(
+        'Confirm your choice',
+        'Are you sure you want to create a public location? This location will be visible to all users.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'OK', onPress: saveChanges },
+        ],
+        { cancelable: false }
+      );
+    } else {
+      await saveChanges();
+    }
   };
 
   const handleLocationSelected = (selectedAddress) => {
-    console.log('Selected Address:', selectedAddress);
     setUpdatedLocation({
       ...updatedLocation,
       address: selectedAddress.address,
       latitude: selectedAddress.lat,
-      longitude: selectedAddress.lng
+      longitude: selectedAddress.lng,
     });
     setIsModalVisible(false);
   };
 
-  if (loading) {
+  if (isLoading || loading) {
     return (
       <ActivityIndicator
         size="large"
@@ -108,11 +106,11 @@ const CreateLocationPage = () => {
     );
   }
 
-  if (!loading && !location) {
+  if (!location) {
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.title}>Location not found</Text>
-        <CustomButton title="Refresh" onPress={fetchLocations} />
+        <CustomButton title="Refresh" onPress={() => setLoading(true)} />
       </SafeAreaView>
     );
   }
@@ -120,7 +118,7 @@ const CreateLocationPage = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>
-        {isEditing ? 'Edit Location' : location?.name}
+        {isEditing ? 'Edit Location' : updatedLocation?.name}
       </Text>
 
       {/* Name Input */}
@@ -142,7 +140,7 @@ const CreateLocationPage = () => {
         </Text>
         {isEditing && (
           <Switch
-            value={updatedLocation?.public}
+            value={Boolean(updatedLocation?.public)}
             onValueChange={(value) =>
               setUpdatedLocation({ ...updatedLocation, public: value })
             }
@@ -153,7 +151,7 @@ const CreateLocationPage = () => {
       {/* Location Section */}
       <Text style={styles.label}>Location</Text>
       <CustomButton
-        title={ isEditing ? 'Change Location' : 'View Location'}
+        title={isEditing ? 'Change Location' : 'View Location'}
         onPress={handleViewLocation}
         buttonStyle={styles.searchButton}
       />
@@ -194,35 +192,39 @@ const CreateLocationPage = () => {
               />
             </>
           ) : (
-            <CustomButton
-              title="Edit"
-              onPress={handleToggleEdit}
-              buttonStyle={styles.createButton}
-            />
+            <View style={{ flexDirection: 'column', width: '100%' }}>
+              <CustomButton
+                title="Edit"
+                onPress={handleToggleEdit}
+                buttonStyle={styles.createButton}
+              />
+              <CustomButton
+                title="Delete"
+                onPress={handleDeleteLocation}
+                buttonStyle={styles.createButton}
+              />
+            </View>
           )}
         </View>
       )}
 
-      { (canEdit && isEditing) ? (
+      {(canEdit && isEditing) ? (
         <LocationSearchModal
-            visible={isModalVisible}
-            onClose={() => setIsModalVisible(false)}
-            onLocationSelected={handleLocationSelected}
-            location={{ latitude: updatedLocation?.latitude, longitude: updatedLocation?.longitude }}
+          visible={isModalVisible}
+          onClose={() => setIsModalVisible(false)}
+          onLocationSelected={handleLocationSelected}
+          location={{ latitude: updatedLocation?.latitude, longitude: updatedLocation?.longitude }}
         />
       ) : (
         <LocationModal
-            visible={isModalVisible}
-            onClose={() => setIsModalVisible(false)}
-            location={updatedLocation}
+          visible={isModalVisible}
+          onClose={() => setIsModalVisible(false)}
+          location={updatedLocation}
         />
       )}
-
-      
     </SafeAreaView>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -258,7 +260,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingLeft: 8,
     borderColor: 'gray',
-    paddingTop: 8, 
+    paddingTop: 8,
     marginBottom: 12,
     borderRadius: 8,
     textAlignVertical: 'top',
@@ -274,11 +276,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
   },
-  switchOption: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-  },
   searchButton: {
     alignSelf: 'center',
     marginBottom: 20,
@@ -286,29 +283,6 @@ const styles = StyleSheet.create({
   createButton: {
     alignSelf: 'center',
     marginTop: 20,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-    padding: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 20,
-    color: '#333',
-  },
-  modalButton: {
-    fontSize: 16,
-    color: defaultStyles.primaryColor,
-    marginVertical: 10,
-  },
-  addressHint: {
-    fontSize: 12,
-    color: '#999',
-    marginBottom: 8,
   },
   saveButton: {
     backgroundColor: '#4CAF50',

@@ -101,7 +101,6 @@ const LocationSearchModal = ({ visible, onClose, onLocationSelected, location = 
   const confirmLocation = async () => {
     if (marker) {
       const { latitude, longitude } = marker.coordinate;
-      console.log("Confirming location:", latitude, longitude);
 
       const url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`;
       const response = await fetch(url, {

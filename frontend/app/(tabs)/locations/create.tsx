@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, Switch, Alert, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { defaultStyles } from '@/src/constants/themes';
 import CustomButton from '@/src/components/CustomButton';
 import LocationSearchModal from '@/src/components/LocationSearchModal';
 import type { createLocation } from '@/src/utils/types';
-import { createLocations } from '@/src/hooks/useLocations';
-import { router } from 'expo-router';
+import { useCreateLocation } from '@/src/hooks/useLocations';
+import { router, useRouter } from 'expo-router';
 
 const CreateLocationPage = () => {
   const [name, setName] = useState('');
@@ -14,6 +14,33 @@ const CreateLocationPage = () => {
   const [address, setAddress] = useState('');
   const [coordinates, setCoordinates] = useState({ lat: '', lon: '' });
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [location, setLocation] = useState<createLocation>(null);
+  const [create, setCreate] = useState(false);
+
+  useEffect(() => {
+    async function createLocation() {
+      if (create) {
+        // Call the mutation
+        const success = await createLocationMutation();
+  
+        if (!success) {
+          Alert.alert('Error', 'Failed to create location. Please try again.');
+          return;
+        }
+  
+        // Show success alert
+        Alert.alert('Success', 'Location created successfully.');
+        router.back();
+      }
+    }
+  
+    createLocation();
+  }, [create, location]);
+
+  // Access the mutation hook for location creation
+  const { mutateAsync: createLocationMutation } = useCreateLocation(location);
+
+  const router = useRouter();
 
   const handleSearchLocation = () => {
     setIsModalVisible(true);
@@ -24,36 +51,6 @@ const CreateLocationPage = () => {
     setCoordinates({ lat: selectedLocation.lat, lon: selectedLocation.lng });
     setIsModalVisible(false);
   };
-
-  const createLocation = async () => {
-      // Create the location object
-      const location: createLocation = {
-        name,
-        public: isPublic,
-        address,
-        latitude: Number(coordinates.lat),
-        longitude: Number(coordinates.lon),
-      };
-  
-      const { success } = await createLocations(location);
-  
-      if (!success) {
-        Alert.alert('Error', 'Failed to create location. Please try again.');
-        return;
-      }
-  
-      // Show success alert
-      Alert.alert('Success', 'Location created successfully.');
-      router.back();
-  
-      // Proceed with location creation (e.g., send data to the backend)
-      console.log({
-        name,
-        isPublic,
-        address,
-        coordinates,
-      });
-  }
 
   const handleCreateLocation = async () => {
     // Check for required fields before proceeding
@@ -70,18 +67,36 @@ const CreateLocationPage = () => {
         [
           {
             text: "Cancel",
-            onPress: () => {return},
+            onPress: () => { return },
             style: "cancel",
           },
           {
             text: "OK",
-            onPress: () => {createLocation()},
+            onPress: async () => {
+              setLocation({
+                name: name,
+                public: isPublic,
+                address: address,
+                latitude: Number(coordinates.lat),
+                longitude: Number(coordinates.lon),
+              });
+
+              setCreate(true);
+            },
           },
         ],
         { cancelable: false }
       );
     } else {
-      createLocation();
+      setLocation({
+        name,
+        public: isPublic,
+        address,
+        latitude: Number(coordinates.lat),
+        longitude: Number(coordinates.lon),
+      });
+
+      setCreate(true);
     }
   };
 

@@ -1,7 +1,17 @@
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { AuthContext, AuthProvider } from '@/src/context/AuthContext';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect } from 'react';
 import { ActivityIndicator } from 'react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: true,
+      staleTime: 1000 * 60 * 1, // 1 minutes - Data will be considered stale after 1 minutes which means it will be refetched
+    },
+  },
+});
 
 const InitialLayout = () => {
   const { user, initialized } = useContext(AuthContext);
@@ -28,7 +38,9 @@ const InitialLayout = () => {
 const RootLayout = () => {
   return (
     <AuthProvider>
-      <InitialLayout />
+      <QueryClientProvider client={queryClient}>
+        <InitialLayout />
+      </QueryClientProvider>
     </AuthProvider>
   );
 };

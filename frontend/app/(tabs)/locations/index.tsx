@@ -3,59 +3,44 @@ import { SafeAreaView, View, Text, FlatList, Switch, StyleSheet, TouchableOpacit
 import { Ionicons } from "@expo/vector-icons";
 import LocationModal from "@/src/components/LocationModal";
 import { useRouter } from "expo-router";
-import { getLocations } from "@/src/hooks/useLocations";
+import { useLocations } from "@/src/hooks/useLocations";
 import type { Location } from "@/src/utils/types";
 import { ActivityIndicator } from "react-native-paper";
 import { FIREBASE_AUTH } from "@/src/config/FirebaseConfig";
 import { UserInfo } from "firebase/auth";
 
-const globalLocations = [
-  { id: "1", name: "Ashford International Station", latitude: 51.1435, longitude: 0.8762 },
-  { id: "2", name: "Hythe Beach", latitude: 51.0719, longitude: 1.0857 },
-  { id: "3", name: "Canterbury Cathedral", latitude: 51.2798, longitude: 1.0836 },
-];
-
-const privateLocations = [
-  { id: "1", name: "My Favorite Café", latitude: 51.1106, longitude: 1.0843 },
-  { id: "2", name: "Hidden Hiking Spot", latitude: 51.0884, longitude: 1.0725 },
-];
-
 const Locations: React.FC = () => {
   const [isGlobal, setIsGlobal] = useState(true);
   const [isAll, setIsAll] = useState(true);
-  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [isModalVisible, setModalVisible] = useState(false);
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [loading, setLoading] = useState(false);
 
   let currentUser: UserInfo;
 
   if (!currentUser) {
-    currentUser = FIREBASE_AUTH.currentUser;
+    currentUser = FIREBASE_AUTH.currentUser!;
   }
 
   const router = useRouter();
 
-  useEffect(() => {
-    fetchLocations();
-  }, []);
+  // Use the `useLocations` hook to fetch locations
+  const { data: locations = [], isLoading } = useLocations();
 
-  const fetchLocations = async () => {
-    setLoading(true);
-    const { success, data } = await getLocations();
-    if (success) {
-      setLocations(data);
-    } else {
-      setLocations([]);
-    }
-    setLoading(false);
-  };
+  let locationsData: Location[] = [];
 
-  const toggleSwitch = async () => setIsGlobal((prev) => !prev);
+  if (locations.data) {
+    locationsData = locations.data as Location[];
+  }
 
-  const toggleSwitch2 = () => setIsAll((prev) => !prev);
+  const toggleSwitch = () => setIsGlobal(prev => !prev);
+  const toggleSwitch2 = () => setIsAll(prev => !prev);
 
-  const data = isGlobal ? ( isAll ? locations.filter((location) => location.public) : locations.filter((location) => location.public && location.creatorUid == currentUser.uid.toString() )): locations.filter((location) => !location.public);
+  // Filter locations based on global and user preferences
+  const data = isGlobal
+    ? isAll
+      ? locationsData.filter(location => location.public)
+      : locationsData.filter(location => location.public && location.creatorUid === currentUser.uid.toString())
+    : locationsData.filter(location => !location.public);
 
   const handleLocationPress = (location: Location) => {
     router.push(`/locations/${location.id}`);
@@ -66,7 +51,7 @@ const Locations: React.FC = () => {
     setModalVisible(false);
   };
 
-  const renderLocationItem = ({ item }) => (
+  const renderLocationItem = ({ item }: { item: Location }) => (
     <TouchableOpacity
       style={styles.itemContainer}
       onPress={() => handleLocationPress(item)}
@@ -99,9 +84,6 @@ const Locations: React.FC = () => {
             {isGlobal ? "Global Locations" : "Private Locations"}
           </Text>
         </View>
-        <TouchableOpacity onPress={fetchLocations} style={styles.refreshButton}>
-            <Ionicons name="refresh" size={20} color="#FFFFFF" />
-          </TouchableOpacity>
         <Switch
           value={isGlobal}
           onValueChange={toggleSwitch}
@@ -109,54 +91,47 @@ const Locations: React.FC = () => {
           trackColor={{ false: "#D8B4FE", true: "#A78BFA" }}
           ios_backgroundColor={"#D8B4FE"}
         />
-        
       </View>
-      { isGlobal && (
+      {isGlobal && (
         <View style={styles.header}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Ionicons
-            name={isAll ? "location-outline" : "person-outline"}
-            size={24}
-            color="#FFFFFF"
-            style={styles.modeIcon}
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Ionicons
+              name={isAll ? "location-outline" : "person-outline"}
+              size={24}
+              color="#FFFFFF"
+              style={styles.modeIcon}
+            />
+            <Text style={styles.headerText}>
+              {isAll ? "All Locations" : "Your Locations"}
+            </Text>
+          </View>
+          <Switch
+            value={isAll}
+            onValueChange={toggleSwitch2}
+            thumbColor="#FFFFFF"
+            trackColor={{ false: "#D8B4FE", true: "#A78BFA" }}
+            ios_backgroundColor={"#D8B4FE"}
           />
-          <Text style={styles.headerText}>
-            {isAll ? "All Locations" : "Your Locations"}
-          </Text>
         </View>
-        <Switch
-          value={isAll}
-          onValueChange={toggleSwitch2}
-          thumbColor="#FFFFFF"
-          trackColor={{ false: "#D8B4FE", true: "#A78BFA" }}
-          ios_backgroundColor={"#D8B4FE"}
-        />
-        
-      </View>
-      )
-        }
-      { loading ? (
-        <ActivityIndicator size={"large"} color={"#6A0DAD"} style={{ marginTop: 20 }} />
-      ) : (
-        <>
-          <FlatList
-            data={data}
-            keyExtractor={(item) => item.id}
-            renderItem={renderLocationItem}
-            contentContainerStyle={styles.list}
-            ListEmptyComponent={<Text style={styles.emptyText}>No locations found</Text>} /
-          >
-          <LocationModal
-            visible={isModalVisible}
-            location={selectedLocation}
-            onClose={closeModal} 
-          />
-        </>
       )}
-      
+
+      {isLoading ? (
+        <ActivityIndicator size="large" color="#6A0DAD" style={{ marginTop: 20 }} />
+      ) : (
+        <FlatList
+          data={data}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderLocationItem}
+          contentContainerStyle={styles.list}
+          ListEmptyComponent={<Text style={styles.emptyText}>No locations found</Text>}
+        />
+      )}
+
       <Pressable style={styles.fab} onPress={handleAddLocationPress}>
         <Ionicons name="add-outline" size={30} color="white" />
       </Pressable>
+
+      <LocationModal visible={isModalVisible} location={selectedLocation} onClose={closeModal} />
     </SafeAreaView>
   );
 };
