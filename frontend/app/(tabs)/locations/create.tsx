@@ -149,12 +149,12 @@ const CreateLocationPage = () => {
       />
 
       {/* Coordinates */}
-      <Text style={styles.label}>Coordinates</Text>
+      {/* <Text style={styles.label}>Coordinates</Text>
       <TextInput
         style={styles.input}
         value={`Lat: ${coordinates.lat}, Lon: ${coordinates.lon}`}
         editable={false}
-      />
+      /> */}
 
       {/* Create Button */}
       <CustomButton

@@ -7,7 +7,7 @@ import { FIREBASE_AUTH } from '@/src/config/FirebaseConfig';
 import { setUserInformation } from '@/src/utils/auth';
 
 export const useAuth = () => {
-  const handleAuth = async (email: string, password: string, username: string, isSignUp: boolean) => {
+  const handleAuth = async (email: string, password: string, username: string, isSignUp: boolean, role: string = "user") => {
     try {
       let userCredential: UserCredential | null = null;
       const apiEndpoint = process.env.EXPO_PUBLIC_BACKEND_URL;
@@ -54,7 +54,7 @@ export const useAuth = () => {
       const idToken = await userCredential.user.getIdToken();
 
       // Step 4: Sync database with the backend
-      const response =await fetch(`${apiEndpoint}/sync-database`, {
+      await fetch(`${apiEndpoint}/sync-database`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${idToken}`,

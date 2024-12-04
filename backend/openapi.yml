@@ -58,6 +58,51 @@ paths:
             application/json:
               schema: 
                 $ref: "#/components/schemas/Error"
+  /update-user-role:
+    put:
+      tags:
+        - "General"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:           
+                userUid:
+                  type: "string"
+                role:
+                  type: "string"
+                  example: "admin"
+      security:
+        - BearerAuth: []
+      summary: "Update a user role"
+      responses:
+        "200":
+          description: "Updated User Role"
+        "401":
+          description: "Authorisation failure"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: "User not found"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: "Role is already updated"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: "Processing Error"
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
 
   /locations:
     get:

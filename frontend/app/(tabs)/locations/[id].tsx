@@ -168,12 +168,12 @@ const CreateLocationPage = () => {
       />
 
       {/* Coordinates */}
-      <Text style={styles.label}>Coordinates</Text>
+      {/* <Text style={styles.label}>Coordinates</Text>
       <TextInput
         style={styles.input}
         value={`Lat: ${updatedLocation?.latitude}, Lon: ${updatedLocation?.longitude}`}
         editable={false}
-      />
+      /> */}
 
       {/* Action Buttons */}
       {canEdit && (

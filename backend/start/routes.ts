@@ -25,5 +25,6 @@ router
     .group(() => {
         router.post('/sync-database', () => {}) // Middleware syncs database. This route is just to call the middleware which syncs the database
         router.resource('/locations', LocationsController).apiOnly()
+        router.post('/update-user-role', [AuthController, 'updateUserRole'])
     })
     .use(middleware.auth())

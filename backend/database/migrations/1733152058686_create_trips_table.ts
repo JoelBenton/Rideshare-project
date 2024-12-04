@@ -9,12 +9,6 @@ export default class extends BaseSchema {
             table
                 .integer('driver_uid')
                 .unsigned()
-                .references('id')
-                .inTable('users')
-                .onDelete('CASCADE')
-            table
-                .string('user_uid')
-                .notNullable()
                 .references('firebase_uid')
                 .inTable('users')
                 .onDelete('CASCADE')

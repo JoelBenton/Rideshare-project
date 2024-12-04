@@ -17,7 +17,7 @@ export default class User extends BaseModel {
     declare updatedAt: DateTime | null
 
     @column()
-    declare role: 'user' | 'admin'
+    declare role: string
 
     @hasMany(() => Trip)
     declare trips: HasMany<typeof Trip>
