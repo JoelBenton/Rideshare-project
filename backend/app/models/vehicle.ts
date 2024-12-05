@@ -7,16 +7,13 @@ export default class Vehicle extends BaseModel {
     declare id: string
 
     @column()
-    declare trip_id: string
-
-    @column()
     declare owner_uid: string
 
     @column()
     declare registration: string
 
     @column()
-    declare brand: string
+    declare make: string
 
     @column()
     declare color: string

@@ -7,19 +7,13 @@ export default class extends BaseSchema {
         this.schema.createTable(this.tableName, (table) => {
             table.increments('id')
             table
-                .integer('trip_id')
-                .notNullable()
-                .references('id')
-                .inTable('trips')
-                .onDelete('CASCADE')
-            table
                 .string('owner_uid')
                 .notNullable()
                 .references('firebase_uid')
                 .inTable('users')
                 .onDelete('CASCADE')
             table.string('registration').notNullable()
-            table.string('brand').notNullable()
+            table.string('make').notNullable()
             table.string('color').notNullable()
             table.timestamps(true, true)
         })
