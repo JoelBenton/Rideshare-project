@@ -17,10 +17,8 @@ export default class extends BaseSchema {
             table.integer('seats_available').notNullable().defaultTo(0)
             table.dateTime('date_of_trip').notNullable()
             table.dateTime('time_of_trip').notNullable()
-            table.string('destination_lat').notNullable()
-            table.string('destination_long').notNullable()
-            table.string('origin_lat').notNullable()
-            table.string('origin_long').notNullable()
+            table.integer('destination_id').notNullable().references('id').inTable('markers')
+            table.integer('origin_id').notNullable().references('id').inTable('markers')
             table.timestamps(true, true)
         })
     }

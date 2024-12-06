@@ -25,7 +25,7 @@ export default class Trip extends BaseModel {
     declare date_of_trip: DateTime
 
     @column()
-    declare time_of_trip: DateTime
+    declare time_of_trip: string
 
     @column()
     declare destination_lat: string
