@@ -113,7 +113,7 @@ const LocationSearchModal = ({ visible, onClose, onLocationSelected, location = 
       const data = await response.json();
       const fullAddress = data.display_name || "Unknown location";
 
-      onLocationSelected({ lat: latitude, lng: longitude, address: fullAddress });
+      onLocationSelected({ lat: latitude as string, lng: longitude as string, address: fullAddress as string });
       onClose();
     }
   };

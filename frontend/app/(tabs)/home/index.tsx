@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { RideCard } from '../../../src/components/rideCard';
 import { NoRidesAvailableCard } from '../../../src/components/NoRidesAvailableCard';
 import CustomButton from '@/src/components/CustomButton';
+import { router } from 'expo-router';
 
 const HomePage: React.FC = () => {
   const testData = {
@@ -37,7 +38,7 @@ const HomePage: React.FC = () => {
 
       {/* Action Buttons */}
       <View style={styles.buttonGroup}>
-        <CustomButton title="Create Trip" buttonStyle={styles.halfButton} />
+        <CustomButton title="Create Trip" buttonStyle={styles.halfButton} onPress={() =>router.push('/(tabs)/(trips)/create_locations')} />
         <CustomButton title="Search Trips" buttonStyle={styles.halfButton} />
       </View>
       <CustomButton title="View all active trips" buttonStyle={styles.fullButton} />

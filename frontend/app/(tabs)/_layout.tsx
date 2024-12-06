@@ -46,6 +46,7 @@ export default () => {
             <Tabs.Screen name="profile" options={{ tabBarLabel: 'Profile' }} />
             <Tabs.Screen name='locations' options={{ tabBarLabel: 'Locations' }}/>
             <Tabs.Screen name="admin" options={{ tabBarLabel: 'Admin', href: admin ? '/(tabs)/admin' : null}} />
+            <Tabs.Screen name="(trips)" options={{ href: null}} />
         </Tabs>
     )
 }
