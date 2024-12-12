@@ -39,7 +39,6 @@ const getFirebaseAuthUsersWithClaims = async () => {
 // Function to sync users from Firebase Auth to SQLite
 export const syncUsersWithSQLite = async () => {
     try {
-        console.log('Syncing users from Firebase Auth to SQLite...')
         const firebaseUsers = await getFirebaseAuthUsersWithClaims()
 
         // Step 1: Get all users from SQLite and Firebase
