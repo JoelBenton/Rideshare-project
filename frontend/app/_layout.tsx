@@ -3,12 +3,15 @@ import { AuthContext, AuthProvider } from '@/src/context/AuthContext';
 import { useContext, useEffect } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Provider } from 'react-redux';
+import { store } from '@store/index';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: true,
-      staleTime: 1000 * 60 * 1, // 1 minutes - Data will be considered stale after 1 minutes which means it will be refetched
+      staleTime: 1000 * 60 * 15, // 15 minutes
+      gcTime: 1000 * 60 * 60 * 24, // 24 hours
     },
   },
 });
@@ -37,11 +40,13 @@ const InitialLayout = () => {
 
 const RootLayout = () => {
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClient}>
-        <InitialLayout />
-      </QueryClientProvider>
-    </AuthProvider>
+    <Provider store={store}>
+      <AuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <InitialLayout />
+        </QueryClientProvider>
+      </AuthProvider>
+    </Provider>
   );
 };
 

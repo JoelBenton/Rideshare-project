@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, View, Switch } from 'react-native';
+import { StyleSheet, Text, TextInput, View, Switch, Alert } from 'react-native';
 import { defaultStyles } from '@/src/constants/themes';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DropdownComponent from '@/src/components/DropdownComponent';
@@ -7,14 +7,18 @@ import { useLocations } from '@/src/hooks/useLocations';
 import type { Location } from '@/src/utils/types';
 import LocationSearchModal from '@/src/components/LocationSearchModal';
 import CustomButton from '@/src/components/CustomButton';
+import MapWithRouteModal from '@/src/components/MapWithRouteModal';
+import { router } from 'expo-router';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState, Dispatch } from '@/src/rematch/store';
 
 const CreateLocations = () => {
-  const [startLocation, setStartLocation] = useState<Location | null>(null);
-  const [endLocation, setEndLocation] = useState<Location | null>(null);
-  const [startModalLocation, setStartModalLocation] = useState<{ lat: string, lng: string, address: string } | null>(null);
-  const [endModalLocation, setEndModalLocation] = useState<{ lat: string, lng: string, address: string } | null>(null);
+  const { startLocation, endLocation, startModalLocation, endModalLocation } = useSelector((state: RootState) => state.locations);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isEnd, setIsEnd] = useState(false); // Switch to toggle between Start and End locations
+  const [isMapWithRouteModalVisible, setIsMapWithRouteModalVisible] = useState(false);
+  const [isEnd, setIsEnd] = useState(false);
+
+  const dispatch = useDispatch<Dispatch>();
 
   const { data: locations = [] } = useLocations();
 
@@ -25,7 +29,6 @@ const CreateLocations = () => {
     value: location,
   }));
 
-  // Determine which location to show/edit based on the toggle
   const currentLocation = isEnd ? endLocation : startLocation;
   const currentModalLocation = isEnd ? endModalLocation : startModalLocation;
 
@@ -35,21 +38,25 @@ const CreateLocations = () => {
 
   const setCurrentLocation = (selectedLocation: Location) => {
     if (isEnd) {
-      setEndLocation(selectedLocation);
-      setEndModalLocation(null);
+      dispatch.locations.setEndLocation(selectedLocation, {});
     } else {
-      setStartLocation(selectedLocation);
-      setStartModalLocation(null);
+      dispatch.locations.setStartLocation(selectedLocation, {});
     }
   };
 
   const handleModalSelected = (selectedLocation: { lat: string, lng: string, address: string }) => {
     if (isEnd) {
-      setEndModalLocation(selectedLocation);
-      setEndLocation(null);
+      dispatch.locations.setEndModalLocation({
+        latitude: selectedLocation.lat,
+        longitude: selectedLocation.lng,
+        address: selectedLocation.address,
+      }, {});
     } else {
-      setStartModalLocation(selectedLocation);
-      setStartLocation(null);
+      dispatch.locations.setStartModalLocation({
+        latitude: selectedLocation.lat,
+        longitude: selectedLocation.lng,
+        address: selectedLocation.address,
+      }, {});
     }
   };
 
@@ -57,10 +64,25 @@ const CreateLocations = () => {
     setIsEnd(!isEnd);
   };
 
+  const handleConfirmTripRoute = () => {
+    const startLocationFinal = startModalLocation || startLocation;
+    const endLocationFinal = endModalLocation || endLocation;
+
+    if (!startLocationFinal || !endLocationFinal) {
+      Alert.alert('Error', 'Please select both start and end locations.');
+    } else {
+      setIsMapWithRouteModalVisible(true);
+    }
+  };
+
+  const handleContinue = () => {
+    setIsMapWithRouteModalVisible(false);
+    router.push('/(tabs)/(trips)/create_form');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Plan Your Route</Text>
-      {/* Switch to toggle between Start and End locations */}
       <View style={styles.switchContainer}>
         <Text style={styles.switchLabel}>Start Location</Text>
         <Switch
@@ -72,39 +94,54 @@ const CreateLocations = () => {
         />
         <Text style={styles.switchLabel}>End Location</Text>
       </View>
-
-      {/* Section for Start/End Location Dropdown */}
-      <Text style={styles.sectionTitle}>
-        {isEnd ? "End Location" : "Start Location"}
-      </Text>
-      <DropdownComponent
-        data={dropdownData}
-        placeholder={`Select a ${isEnd ? "end" : "start"} location`}
-        onValueChange={setCurrentLocation}
-        selectedValue={currentLocation}
-      />
-      <CustomButton
-        title="Search"
-        onPress={handleOpenModal}
-        buttonStyle={styles.searchButton}
-      />
-
-      {/* Address Field */}
-      <Text style={styles.label}>Address</Text>
-      <TextInput
-        style={styles.multiLineInput}
-        value={currentModalLocation?.address || currentLocation?.address || ''}
-        editable={false}
-        multiline
-        numberOfLines={4}
-        textAlignVertical="top"
-      />
-
-      {/* Modal for Location Search */}
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>
+          {isEnd ? "End Location" : "Start Location"}
+        </Text>
+        <DropdownComponent
+          data={dropdownData}
+          placeholder={`Select a ${isEnd ? "end" : "start"} location`}
+          onValueChange={setCurrentLocation}
+          selectedValue={currentLocation}
+        />
+        <CustomButton
+          title="Search"
+          onPress={handleOpenModal}
+          buttonStyle={styles.searchButton}
+        />
+        <Text style={styles.label}>Address</Text>
+        <TextInput
+          style={styles.multiLineInput}
+          value={currentModalLocation?.address || currentLocation?.address || ''}
+          editable={false}
+          multiline
+          numberOfLines={4}
+          textAlignVertical="top"
+        />
+      </View>
       <LocationSearchModal
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
         onLocationSelected={handleModalSelected}
+      />
+
+      {/* Button at the Bottom */}
+      <View style={styles.bottomButtonContainer}>
+        <CustomButton
+          title="Confirm Trip Route"
+          onPress={handleConfirmTripRoute}
+        />
+      </View>
+
+      <MapWithRouteModal
+        visible={isMapWithRouteModalVisible}
+        onCancel={() => setIsMapWithRouteModalVisible(false)}
+        onContinue={() => {
+          setIsMapWithRouteModalVisible(false);
+          router.push('/(tabs)/(trips)/create_form')
+        }}
+        startLocation={startLocation || startModalLocation}
+        endLocation={endLocation || endModalLocation}
       />
     </SafeAreaView>
   );
@@ -169,5 +206,22 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: defaultStyles.primaryColor,
     borderRadius: 8,
+  },
+  sectionContainer: {
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
+    backgroundColor: '#FFF',
+    borderRadius: 8,
+    padding: 16,
+  },
+  bottomButtonContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
   },
 });

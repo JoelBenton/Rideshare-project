@@ -2,10 +2,31 @@ import { FIREBASE_AUTH } from "@/src/config/FirebaseConfig";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router"
 import React from "react";
-import { TextStyle, StyleSheet } from "react-native";
+import { TextStyle, StyleSheet, Keyboard } from "react-native";
 
 export default () => {
     const [admin, setAdmin] = React.useState(false);
+    const [keyboardShow, setKeyboardShow] = React.useState(false);
+    React.useEffect(() => {
+        const keyboardDidShowListener = Keyboard.addListener(
+        'keyboardDidShow',
+        () => {
+            setKeyboardShow(true);
+        }
+        );
+        const keyboardDidHideListener = Keyboard.addListener(
+        'keyboardDidHide',
+        () => {
+            setKeyboardShow(false);
+        }
+        );
+
+        return () => {
+        keyboardDidHideListener.remove();
+        keyboardDidShowListener.remove();
+        };
+    }, []);
+
 
     FIREBASE_AUTH.currentUser?.getIdTokenResult(true).then((token) => {
         const role = token.claims.role;
@@ -37,7 +58,7 @@ export default () => {
             },
             tabBarActiveTintColor: '#C8A2C8',
             tabBarInactiveTintColor: '#D3D3D3',
-            tabBarStyle: styles.tabBar,
+            tabBarStyle: [styles.tabBar, {marginBottom:keyboardShow ? -100 : 0}],
             tabBarLabelStyle: styles.tabBarLabel as TextStyle,
         })}
         >
@@ -61,8 +82,5 @@ const styles = StyleSheet.create ({
     tabBarLabel: {
         fontSize: 14,
         fontWeight: "bold",
-    },
-    tarBarProfileIconStyle: {
-        
     },
 });
