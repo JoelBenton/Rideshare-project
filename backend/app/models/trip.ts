@@ -22,16 +22,22 @@ export default class Trip extends BaseModel {
     declare seats_available: number
 
     @column()
-    declare date_of_trip: DateTime
+    declare date_of_trip: string
 
     @column()
-    declare time_of_trip: DateTime
+    declare time_of_trip: string
 
     @column()
     declare destination_lat: string
 
     @column()
     declare destination_long: string
+
+    @column()
+    declare destination_address: string
+
+    @column()
+    declare origin_address: string
 
     @column()
     declare origin_lat: string

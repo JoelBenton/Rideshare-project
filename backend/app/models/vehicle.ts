@@ -4,10 +4,7 @@ import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 
 export default class Vehicle extends BaseModel {
     @column({ isPrimary: true })
-    declare id: string
-
-    @column()
-    declare trip_id: string
+    declare id: number
 
     @column()
     declare owner_uid: string
@@ -16,11 +13,11 @@ export default class Vehicle extends BaseModel {
     declare registration: string
 
     @column()
-    declare brand: string
+    declare make: string
 
     @column()
     declare color: string
 
-    @belongsTo(() => User, { foreignKey: 'owner_uid' })
+    @belongsTo(() => User)
     declare owner: BelongsTo<typeof User>
 }
