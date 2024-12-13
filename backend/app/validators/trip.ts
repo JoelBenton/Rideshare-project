@@ -7,8 +7,27 @@ export const tripSchema = Vine.compile(
         Make: Vine.string(),
         Color: Vine.string(),
         seats_available: Vine.number(),
-        date_of_trip: Vine.string().regex(/^\d{2}-\d{2}-\d{2}$/), // DD-MM-YY format
-        time_of_trip: Vine.string().regex(/^\d{2}:\d{2}$/), // HH:mm format
+        date_of_trip: Vine.date(),
+        destination_lat: Vine.string(),
+        destination_long: Vine.string(),
+        destination_address: Vine.string(),
+        origin_lat: Vine.string(),
+        origin_long: Vine.string(),
+        origin_address: Vine.string(),
+    })
+)
+
+export const tripUpdateSchema = Vine.compile(
+    Vine.object({
+        id: Vine.string(),
+        driver_uid: Vine.string(),
+        vehicle_id: Vine.number(),
+        Make: Vine.string(),
+        Color: Vine.string(),
+        Registration: Vine.string(),
+        seats_available: Vine.number(),
+        seats_occupied: Vine.number(),
+        date_of_trip: Vine.date(),
         destination_lat: Vine.string(),
         destination_long: Vine.string(),
         destination_address: Vine.string(),
