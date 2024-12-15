@@ -1,13 +1,15 @@
-import { DateTime } from 'luxon'
 import { BaseModel, column, belongsTo, hasOne, hasMany } from '@adonisjs/lucid/orm'
 import type { HasOne, BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import User from './user.js'
 import Vehicle from './vehicle.js'
-import Marker from './marker.js'
+import Passenger from './passenger.js'
 
 export default class Trip extends BaseModel {
     @column({ isPrimary: true })
-    declare id: string
+    declare id: number
+
+    @column()
+    declare trip_name: string
 
     @column()
     declare driver_uid: string
@@ -45,12 +47,12 @@ export default class Trip extends BaseModel {
     @column()
     declare origin_long: string
 
-    @belongsTo(() => User, { foreignKey: 'driver_uid' })
+    @belongsTo(() => User, { foreignKey: 'driver_uid', localKey: 'firebase_uid' })
     declare user: BelongsTo<typeof User>
 
-    @hasOne(() => Vehicle, { foreignKey: 'vehicle_id' })
+    @hasOne(() => Vehicle, { foreignKey: 'id', localKey: 'vehicle_id' })
     declare vehicle: HasOne<typeof Vehicle>
 
-    @hasMany(() => Marker)
-    declare markers: HasMany<typeof Marker>
+    @hasMany(() => Passenger, { foreignKey: 'trip_id', localKey: 'id' })
+    declare passengers: HasMany<typeof Passenger>
 }

@@ -18,6 +18,6 @@ export default class Vehicle extends BaseModel {
     @column()
     declare color: string
 
-    @belongsTo(() => User)
+    @belongsTo(() => User, { foreignKey: 'owner_uid' })
     declare owner: BelongsTo<typeof User>
 }

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { defaultStyles } from '@/src/constants/themes';
 import CustomDateTimePicker from '@/src/components/CustomDateTimePicker';
@@ -8,10 +8,13 @@ import { Ionicons } from '@expo/vector-icons';
 import CustomButton from '@/src/components/CustomButton';
 import { RootState } from '@/src/rematch/store';
 import { useSelector } from 'react-redux';
+import { createTrip as Ctrip } from '@/src/utils/types';
+import { useCreateTrip } from '@/src/hooks/useTrips';
+import { router } from 'expo-router';
 
 const CreateForm = () => {
   const [isPickerVisible, setPickerVisible] = useState(false);
-  const { startLocation, endLocation, startModalLocation, endModalLocation } = useSelector((state: RootState) => state.locations);
+  const {startLocation, endLocation, startModalLocation, endModalLocation } = useSelector((state: RootState) => state.locations);
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [mode, setMode] = useState<'date' | 'time'>('date');
   const [seats, setSeats] = useState(1);
@@ -19,6 +22,31 @@ const CreateForm = () => {
   const [vehicleReg, setVehicleReg] = useState('');
   const [carMake, setCarMake] = useState('');
   const [carColor, setCarColor] = useState('');
+  const [tripData, setTripData] = useState<Ctrip | null>(null);
+  const [create, setCreate] = useState(false);
+
+  useEffect(() => {
+    async function createTrip() {
+      if (create) {
+        console.log(tripData);
+        // Call the mutation
+        const success = await createTripMutation();
+  
+        if (!success) {
+          Alert.alert('Error', 'Failed to create trip. Please try again.');
+          return;
+        }
+  
+        // Show success alert
+        Alert.alert('Success', 'Trip created successfully.');
+        router.push('/(tabs)/home');
+      }
+    }
+  
+    createTrip();
+  }, [create, tripData]);
+
+  const { mutateAsync: createTripMutation } = useCreateTrip(tripData);
 
   const incrementSeats = () => setSeats((prev) => prev + 1);
   const decrementSeats = () => setSeats((prev) => (prev > 0 ? prev - 1 : 0));
@@ -34,18 +62,48 @@ const CreateForm = () => {
     setSelectedDate(date);
   };
 
-  const confirm = () => {
-    const tripData = {
-      tripName,
-      vehicleReg,
-      carMake,
-      carColor,
-      selectedDate,
-      seats,
-    };
+  const confirm = async () => {
+    if (!tripName || !vehicleReg || !carMake || !carColor || !selectedDate) {
+      Alert.alert('Please fill in all the fields');
+      return;
+    }
 
-    console.log('Trip Data:', tripData);
-    // You can replace this with a function to send the data to an API or another action
+    Alert.alert(
+      "Confirm your choice",
+      "Are you sure you want to create a trip? This trip and locations will be visible to all users.",
+      [
+        {
+          text: "Cancel",
+          onPress: () => { return },
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          onPress: async () => {
+            const tripData: Ctrip = {
+              trip_name: tripName,
+              vehicle_id: null,
+              Registration: vehicleReg,
+              Make: carMake,
+              Color: carColor,
+              seats_available: seats,
+              date_of_trip: selectedDate.toISOString(),
+              destination_lat: String(endModalLocation.latitude) || String(endLocation.latitude),
+              destination_long: String(endModalLocation.longitude) || String(endLocation.longitude),
+              destination_address: endModalLocation.address || endLocation.address,
+              origin_lat: String(startModalLocation.latitude) || String(startLocation.latitude),
+              origin_long: String(startModalLocation.longitude) || String(startLocation.longitude),
+              origin_address: startModalLocation.address || startLocation.address,
+            };
+        
+            setTripData(tripData);
+        
+            setCreate(true);
+          },
+        },
+      ],
+      { cancelable: false }
+    );
   };
 
   return (

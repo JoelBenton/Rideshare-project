@@ -1,8 +1,9 @@
 import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import User from './user.js'
+import Trip from './trip.js'
 
-export default class Marker extends BaseModel {
+export default class Passenger extends BaseModel {
     @column({ isPrimary: true })
     declare id: string
 
@@ -21,6 +22,9 @@ export default class Marker extends BaseModel {
     @column()
     declare user_uid: string
 
-    @belongsTo(() => User, { foreignKey: 'user_uid' })
+    @belongsTo(() => User, { foreignKey: 'user_uid', localKey: 'firebase_uid' })
     declare user: BelongsTo<typeof User>
+
+    @belongsTo(() => Trip, { foreignKey: 'trip_id', localKey: 'id' })
+    declare trip: BelongsTo<typeof Trip>
 }

@@ -3,20 +3,191 @@ import Vehicle from '#models/vehicle'
 import { tripSchema, tripUpdateSchema } from '#validators/trip'
 import type { HttpContext } from '@adonisjs/core/http'
 
+const formatTrip = (trip: Trip) => {
+    return {
+        id: trip.id,
+        trip_name: trip.trip_name,
+        date_of_trip: trip.date_of_trip,
+        time_of_trip: trip.time_of_trip,
+        driver: {
+            id: trip.user.firebase_uid,
+            username: trip.user.username,
+        },
+        vehicle: {
+            id: trip.vehicle.id,
+            seats_available: trip.seats_available,
+            seats_occupied: trip.seats_occupied,
+            registration: trip.vehicle.registration,
+            make: trip.vehicle.make,
+            color: trip.vehicle.color,
+        },
+        passengers: trip.passengers.map((passenger) => {
+            return {
+                id: passenger.id,
+                lat: passenger.lat,
+                lng: passenger.lng,
+                address: passenger.address,
+                driver: {
+                    id: passenger.user.firebase_uid,
+                    username: passenger.user.username,
+                },
+            }
+        }),
+        destination: {
+            lat: trip.destination_lat,
+            lng: trip.destination_long,
+            address: trip.destination_address,
+        },
+        origin: {
+            lat: trip.origin_lat,
+            lng: trip.origin_long,
+            address: trip.origin_address,
+        },
+    }
+}
+
 export default class TripsController {
     /**
      * Display a list of resource
      */
     async index({ response }: HttpContext) {
         try {
+            const tripsLength = await Trip.all()
+
+            if (tripsLength.length === 0) {
+                return response.ok({ data: [] })
+            }
+
             const trips = await Trip.query()
                 .preload('user')
                 .preload('vehicle')
-                .preload('markers', (query) => {
+                .preload('passengers', (query) => {
                     query.preload('user')
                 })
-            return response.ok({ data: trips })
+
+            // Filter trips that are in the future or current date
+            const formattedTrips = trips
+                .filter((trip) => {
+                    const [day, month, year] = trip.date_of_trip.split('-').map(Number)
+                    const tripDate = new Date(year + 2000, month - 1, day)
+
+                    return tripDate >= new Date()
+                })
+                .map((trip) => {
+                    return formatTrip(trip)
+                })
+
+            return response.ok({ data: formattedTrips })
         } catch (error) {
+            console.log(error)
+            return response.internalServerError({ error: 'trips/processing-error' })
+        }
+    }
+
+    /**
+     * Display a list of resource for the authenticated user where date of trip is in the future or current date
+     */
+    async userIndex({ request, response, params }: HttpContext) {
+        try {
+            const uid = request.all().authUid
+            const userUid = params.user_id
+
+            if (uid !== userUid) {
+                return response.forbidden({ error: 'trips/forbidden' })
+            }
+
+            // Check if user has trips before loading all related data
+            const tripsLength = await Trip.query().where('driver_uid', uid)
+            if (tripsLength.length === 0) {
+                return response.ok({ data: [] })
+            }
+
+            // Load all related data
+            const trips = await Trip.query()
+                .where('driver_uid', uid)
+                .preload('user')
+                .preload('vehicle')
+                .preload('passengers', (query) => {
+                    query.preload('user')
+                })
+
+            // Filter trips that are in the future or current date
+            const formattedTrips = trips
+                .filter((trip) => trip.date_of_trip >= new Date().toISOString())
+                .map((trip) => {
+                    return formatTrip(trip)
+                })
+
+            return response.ok({ data: formattedTrips })
+        } catch (error) {
+            console.log(error)
+            return response.internalServerError({ error: 'trips/processing-error' })
+        }
+    }
+
+    /**
+     * Get all trips regardless of
+     */
+    async all({ response }: HttpContext) {
+        try {
+            const tripsLength = await Trip.all()
+            if (tripsLength.length === 0) {
+                return response.ok({ data: [] })
+            }
+
+            const trips = await Trip.query()
+                .preload('user')
+                .preload('vehicle')
+                .preload('passengers', (query) => {
+                    query.preload('user')
+                })
+
+            // Filter trips that are in the future or current date
+            const formattedTrips = trips.map((trip) => {
+                return formatTrip(trip)
+            })
+
+            return response.ok({ data: formattedTrips })
+        } catch (error) {
+            console.log(error)
+            return response.internalServerError({ error: 'trips/processing-error' })
+        }
+    }
+
+    /**
+     * Display a list of resource for the authenticated user
+     */
+    async userTripsAll({ request, response, params }: HttpContext) {
+        try {
+            const authUid = request.all().authUid
+            const userUid = params.user_id
+
+            if (authUid !== userUid) {
+                return response.forbidden({ error: 'trips/forbidden' })
+            }
+
+            // Check if user has trips before loading all related data
+            const tripsLength = await Trip.query().where('driver_uid', userUid)
+            if (tripsLength.length === 0) {
+                return response.ok({ data: [] })
+            }
+
+            const trips = await Trip.query()
+                .where('driver_uid', userUid)
+                .preload('user')
+                .preload('vehicle')
+                .preload('passengers', (query) => {
+                    query.preload('user')
+                })
+
+            // Filter trips that are in the future or current date
+            const formattedTrips = trips.map((trip) => {
+                return formatTrip(trip)
+            })
+
+            return response.ok({ data: formattedTrips })
+        } catch (error) {
+            console.log(error)
             return response.internalServerError({ error: 'trips/processing-error' })
         }
     }
@@ -26,27 +197,30 @@ export default class TripsController {
      */
     async store({ request, response }: HttpContext) {
         try {
+            console.log('Creating trip')
             const { authUid, ...payload } = request.all()
+
             const validatedPayload = await tripSchema.validate(payload)
 
-            // Extract Date in DD-MM-YY format
-            const formattedDate = validatedPayload.date_of_trip.toLocaleDateString('en-GB', {
-                day: '2-digit',
-                month: '2-digit',
-                year: '2-digit',
-            })
+            // Extract Date in DD/MM/YY format
+            const formattedDate = validatedPayload.date_of_trip
+                .toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: '2-digit',
+                })
+                .replace(/\//g, '-')
 
             // Extract Time in HH-MM format
             const formattedTime = validatedPayload.date_of_trip.toLocaleTimeString('en-GB', {
                 hour: '2-digit',
                 minute: '2-digit',
-                hour12: false, // Use 24-hour format
+                hour12: false,
             })
 
-            let trip = null
-
             if (validatedPayload.vehicle_id) {
-                trip = await Trip.create({
+                await Trip.create({
+                    trip_name: validatedPayload.trip_name,
                     driver_uid: authUid,
                     vehicle_id: validatedPayload.vehicle_id,
                     seats_available: validatedPayload.seats_available,
@@ -68,7 +242,8 @@ export default class TripsController {
                     color: validatedPayload.Color,
                 })
 
-                trip = await Trip.create({
+                await Trip.create({
+                    trip_name: validatedPayload.trip_name,
                     driver_uid: authUid,
                     vehicle_id: vehicle.id,
                     seats_available: validatedPayload.seats_available,
@@ -84,7 +259,7 @@ export default class TripsController {
                 })
             }
 
-            return response.created({ data: trip })
+            return response.created({ msg: 'Trip created successfully' })
         } catch (error) {
             if (error.code === 'E_VALIDATION_ERROR') {
                 return response.badRequest({ error: 'trips/validation-error' })
@@ -101,13 +276,17 @@ export default class TripsController {
      */
     async show({ params, response }: HttpContext) {
         try {
-            const trip = await Trip.findOrFail(params.id)
-            trip.load('user')
-            trip.load('vehicle')
-            trip.load('markers', (query) => {
-                query.preload('user')
-            })
-            return response.ok({ data: trip })
+            const trip = await Trip.query()
+                .where('id', params.id)
+                .preload('user')
+                .preload('vehicle')
+                .preload('passengers', (query) => {
+                    query.preload('user')
+                })
+                .firstOrFail()
+
+            const formattedTrip = formatTrip(trip)
+            return response.ok({ data: formattedTrip })
         } catch (error) {
             if (error.code === 'E_ROW_NOT_FOUND') {
                 return response.notFound({ error: 'trips/not-found' })
@@ -131,17 +310,24 @@ export default class TripsController {
                 return response.forbidden({ error: 'trips/forbidden' })
             }
 
-            const formattedDate = validatedPayload.date_of_trip.toLocaleDateString('en-GB', {
-                day: '2-digit',
-                month: '2-digit',
-                year: '2-digit',
-            })
+            if (validatedPayload.date_of_trip) {
+                const formattedDate = validatedPayload.date_of_trip
+                    .toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: '2-digit',
+                    })
+                    .replace(/\//g, '-')
 
-            const formattedTime = validatedPayload.date_of_trip.toLocaleTimeString('en-GB', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false, // Use 24-hour format
-            })
+                const formattedTime = validatedPayload.date_of_trip.toLocaleTimeString('en-GB', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                })
+
+                trip.date_of_trip = formattedDate
+                trip.time_of_trip = formattedTime
+            }
 
             const vehicle = await Vehicle.findOrFail(trip.vehicle_id)
 
@@ -153,22 +339,23 @@ export default class TripsController {
             })
             await vehicle.save()
 
-            trip.date_of_trip = formattedDate
-            trip.time_of_trip = formattedTime
+            trip.trip_name = validatedPayload.trip_name || trip.trip_name
 
-            trip.seats_available = validatedPayload.seats_available
-            trip.seats_occupied = validatedPayload.seats_occupied
+            trip.seats_available = validatedPayload.seats_available || trip.seats_available
+            trip.seats_occupied = validatedPayload.seats_occupied || trip.seats_occupied
 
-            trip.destination_lat = validatedPayload.destination_lat
-            trip.destination_long = validatedPayload.destination_long
-            trip.destination_address = validatedPayload.destination_address
-            trip.origin_address = validatedPayload.origin_address
-            trip.origin_lat = validatedPayload.origin_lat
-            trip.origin_long = validatedPayload.origin_long
+            trip.destination_lat = validatedPayload.destination_lat || trip.destination_lat
+            trip.destination_long = validatedPayload.destination_long || trip.destination_long
+            trip.destination_address =
+                validatedPayload.destination_address || trip.destination_address
+            trip.origin_address = validatedPayload.origin_address || trip.origin_address
+            trip.origin_lat = validatedPayload.origin_lat || trip.origin_lat
+            trip.origin_long = validatedPayload.origin_long || trip.origin_long
 
             await trip.save()
-            return response.ok({ data: trip })
+            return response.ok({ msg: 'Trip updated successfully' })
         } catch (error) {
+            console.log(error)
             if (error.code === 'E_ROW_NOT_FOUND') {
                 return response.notFound({ error: 'trips/not-found' })
             }
