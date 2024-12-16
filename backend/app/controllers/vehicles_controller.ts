@@ -10,10 +10,11 @@ export default class VehiclesController {
     async index({ request, response }: HttpContext) {
         try {
             const uid = request.all().authUid
-            const vehicles = await Vehicle.query().where('creator_uid', uid)
+            const vehicles = await Vehicle.query().where('owner_uid', uid)
 
             return response.ok({ data: vehicles })
         } catch (error) {
+            console.error(error)
             if (error.code === 'E_ROW_NOT_FOUND') {
                 return response.notFound({ error: 'vehicles/not-found' })
             }

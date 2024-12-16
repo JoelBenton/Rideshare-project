@@ -1,4 +1,4 @@
-import Marker from '#models/marker'
+import Passenger from '#models/passenger'
 import type { HttpContext } from '@adonisjs/core/http'
 import { markerSchema, markerUpdateSchema } from '#validators/marker'
 
@@ -10,7 +10,7 @@ export default class MarkersController {
         try {
             const tripId = params.trip_id
 
-            const markers = await Marker.query().where('trip_id', tripId)
+            const markers = await Passenger.query().where('trip_id', tripId)
             return response.ok({ data: markers })
         } catch (error) {
             if (error.code === 'E_ROW_NOT_FOUND') {
@@ -29,7 +29,7 @@ export default class MarkersController {
 
             const validatedPayload = await markerSchema.validate(filteredPayload)
 
-            const marker = await Marker.create(validatedPayload)
+            const marker = await Passenger.create(validatedPayload)
             return response.created({ data: marker })
         } catch (error) {
             if (error.code === 'E_VALIDATION_ERROR') {
@@ -44,7 +44,7 @@ export default class MarkersController {
      */
     async show({ params, response }: HttpContext) {
         try {
-            const marker = await Marker.findOrFail(params.id)
+            const marker = await Passenger.findOrFail(params.id)
             return response.ok({ data: marker })
         } catch (error) {
             if (error.code === 'E_ROW_NOT_FOUND') {
@@ -59,7 +59,7 @@ export default class MarkersController {
      */
     async update({ params, request, response }: HttpContext) {
         try {
-            const marker = await Marker.findOrFail(params.id)
+            const marker = await Passenger.findOrFail(params.id)
 
             const { authUid, ...filteredPayload } = request.all()
             const validatedPayload = await markerUpdateSchema.validate(filteredPayload)
@@ -71,6 +71,8 @@ export default class MarkersController {
                 lat: validatedPayload.latitude ?? marker.lat,
                 lng: validatedPayload.longitude ?? marker.lng,
                 address: validatedPayload.address ?? marker.address,
+                pending: validatedPayload.pending ?? marker.pending,
+                status: validatedPayload.status ?? marker.status,
             })
             await marker.save()
             return response.ok({ data: marker })
@@ -90,7 +92,7 @@ export default class MarkersController {
      */
     async destroy({ params, response }: HttpContext) {
         try {
-            const marker = await Marker.findOrFail(params.id)
+            const marker = await Passenger.findOrFail(params.id)
             await marker.delete()
             return response.noContent()
         } catch (error) {

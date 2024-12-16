@@ -1,32 +1,50 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, StyleProp, TextStyle, ViewStyle, ActivityIndicator } from 'react-native';
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  StyleProp,
+  TextStyle,
+  ViewStyle,
+  ActivityIndicator,
+} from 'react-native';
 import { defaultStyles } from '@/src/constants/themes';
-import { useFonts } from 'expo-font'
 
 interface CustomButtonProps {
   title: string;
   onPress?: () => void;
   buttonStyle?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
+  isLoading?: boolean;
+  disabled?: boolean;
 }
 
-const CustomButton: React.FC<CustomButtonProps> = ({ title, onPress, buttonStyle, textStyle }) => {
+const CustomButton: React.FC<CustomButtonProps> = ({
+  title,
+  onPress,
+  buttonStyle,
+  textStyle,
+  isLoading = false,
+  disabled = false,
+}) => {
+  const buttonDisabled = isLoading || disabled;
 
-  const [fontsLoaded, fontError] = useFonts({
-    'InknutAntiqua_600SemiBold': require('@/assets/Fonts/InknutAntiqua-SemiBold.ttf')
-  })
-
-  if (fontError) {
-    console.error(fontError)
-  }
-
-  if (!fontsLoaded) {
-    return <ActivityIndicator />
-  }
- 
   return (
-    <TouchableOpacity style={[styles.button, buttonStyle]} onPress={onPress}>
-      <Text style={[styles.buttonText, textStyle]}>{title}</Text>
+    <TouchableOpacity
+      style={[
+        styles.button,
+        buttonStyle,
+        buttonDisabled && styles.disabledButton,
+      ]}
+      onPress={onPress}
+      activeOpacity={0.8}
+      disabled={buttonDisabled}
+    >
+      {isLoading ? (
+        <ActivityIndicator color={defaultStyles.secondaryColor} />
+      ) : (
+        <Text style={[styles.buttonText, textStyle]}>{title}</Text>
+      )}
     </TouchableOpacity>
   );
 };
@@ -34,18 +52,21 @@ const CustomButton: React.FC<CustomButtonProps> = ({ title, onPress, buttonStyle
 const styles = StyleSheet.create({
   button: {
     backgroundColor: defaultStyles.primaryColor,
-    padding: 10,
+    padding: 12,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    height: 45
+    height: 48,
   },
   buttonText: {
     color: defaultStyles.secondaryColor,
     fontFamily: defaultStyles.fontFamily,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
+  },
+  disabledButton: {
+    backgroundColor: '#A0A0A0',
   },
 });
 

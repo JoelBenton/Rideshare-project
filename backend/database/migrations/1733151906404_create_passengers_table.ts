@@ -1,7 +1,7 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
 
 export default class extends BaseSchema {
-    protected tableName = 'markers'
+    protected tableName = 'passengers'
 
     async up() {
         this.schema.createTable(this.tableName, (table) => {
@@ -21,6 +21,9 @@ export default class extends BaseSchema {
                 .references('firebase_uid')
                 .inTable('users')
                 .onDelete('CASCADE')
+            table.boolean('pending').notNullable().defaultTo(true)
+            table.string('status').notNullable().defaultTo('pending')
+            table.timestamps(true, true)
         })
     }
 

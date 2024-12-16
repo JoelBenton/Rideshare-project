@@ -24,6 +24,6 @@ export default class Locations extends BaseModel {
     @column()
     declare longitude: number
 
-    @belongsTo(() => User, { foreignKey: 'creator_uid' })
+    @belongsTo(() => User)
     declare creator: BelongsTo<typeof User>
 }

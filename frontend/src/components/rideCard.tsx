@@ -1,98 +1,114 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; 
-import { Int32 } from 'react-native/Libraries/Types/CodegenTypes';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Trips } from '../utils/types';
 
-interface CustomRideCardProps {
-    cardStyle?: StyleProp<ViewStyle>;
-    showButton?: boolean
-    data: {
-        startName: string,
-        startTown: string,
-        date: Date,
-        endName: string,
-        endTown: string,
-        usedCapacity: Int32,
-        totalCapacity: Int32
-    }
-  }
+interface RideCardProps {
+  data: Trips;
+  onPress?: () => void; // Optional callback for when the card is pressed
+}
 
-const formatDate = (date: Date): string => {
-  return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
-};
-
-const RideCard: React.FC<CustomRideCardProps> = ({cardStyle, showButton = true, data}) => {
+const RideCard: React.FC<RideCardProps> = ({ data, onPress }) => {
   return (
-    <View style={[styles.card, cardStyle]}>
-      {/* Left Section */}
-      <View style={styles.leftSection}>
-        <Text style={styles.locationText}>{data.startName}</Text>
-        <Text style={styles.subText}>{data.startTown}</Text>
-        <Text style={styles.dateText}>{formatDate(data.date)}</Text>
+    <TouchableOpacity style={styles.cardContainer} onPress={onPress} activeOpacity={0.8}>
+      {/* Top Row: Trip Information */}
+      <View style={styles.row}>
+        <Ionicons name="car-outline" size={20} color="#007BFF" />
+        <Text style={styles.tripName}>{data.trip_name}</Text>
       </View>
 
-      {/* Center Arrow */}
-      <Ionicons name="arrow-forward" size={24} color="black" />
+      {/* Divider */}
+      <View style={styles.divider} />
 
-      {/* Right Section */}
-      <View style={styles.rightSection}>
-        <Text style={styles.locationText}>{data.endName}</Text>
-        <Text style={styles.subText}>{data.endTown}</Text>
-        <View style={styles.passengerInfo}>
-          <Ionicons name="person-outline" size={16} color="black" />
-          <Text style={styles.passengerText}> {data.usedCapacity}/{data.totalCapacity}</Text>
+      {/* Locations */}
+      <View style={styles.row}>
+        <View style={styles.locationContainer}>
+          <Text style={styles.locationTitle}>From:</Text>
+          <Text style={styles.locationText} numberOfLines={5} ellipsizeMode="tail">{data.origin.address}</Text>
+        </View>
+        <Ionicons name="arrow-forward" size={20} color="#333" />
+        <View style={styles.locationContainer}>
+          <Text style={styles.locationTitle}>To:</Text>
+          <Text style={styles.locationText} numberOfLines={5} ellipsizeMode="tail">{data.destination.address}</Text>
         </View>
       </View>
 
-      {/* Right Arrow */}
-      <View style={ !showButton ? {display: 'none'} : undefined}>
-        <TouchableOpacity>
-            <Ionicons name="chevron-forward" size={24} color="black" />
-        </TouchableOpacity>
+      {/* Divider */}
+      <View style={styles.divider} />
+
+      {/* Bottom Row: Date, Time, and Seats */}
+      <View style={styles.row}>
+        <View style={styles.infoSection}>
+          <Ionicons name="calendar-outline" size={16} color="#333" />
+          <Text style={styles.infoText}>{data.date_of_trip}</Text>
+        </View>
+        <View style={styles.infoSection}>
+          <Ionicons name="time-outline" size={16} color="#333" />
+          <Text style={styles.infoText}>{data.time_of_trip}</Text>
+        </View>
+        <View style={styles.infoSection}>
+          <Ionicons name="person-outline" size={16} color="#333" />
+          <Text style={styles.infoText}>
+            {data.vehicle.seats_occupied}/{data.vehicle.seats_available}
+          </Text>
+        </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
+  cardContainer: {
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 16,
+    marginVertical: 8,
+    marginHorizontal: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    shadowOffset: { width: 1, height: 2 },
+    elevation: 3,
+  },
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#D3D3D3',
-    padding: 15,
-    borderRadius: 15,
     justifyContent: 'space-between',
-    width: '90%',
-    margin: 10,
+    marginBottom: 8,
   },
-  leftSection: {
-    alignItems: 'flex-start',
+  tripName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginLeft: 8,
   },
-  rightSection: {
-    alignItems: 'flex-end',
+  divider: {
+    height: 1,
+    backgroundColor: '#E0E0E0',
+    marginVertical: 8,
+  },
+  locationContainer: {
+    flex: 1,
+  },
+  locationTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#888',
   },
   locationText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    padding: 3,
+    fontSize: 14,
+    color: '#333',
+    marginTop: 2,
   },
-  subText: {
-    fontWeight: 'bold',
-    fontSize: 12,
-    padding: 3,
-  },
-  dateText: {
-    fontSize: 12,
-    padding: 3,
-  },
-  passengerInfo: {
+  infoSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 5,
+    marginHorizontal: 8,
   },
-  passengerText: {
-    fontSize: 12,
-    color: 'black',
+  infoText: {
+    fontSize: 14,
+    color: '#555',
+    marginLeft: 4,
   },
 });
 
