@@ -31,6 +31,12 @@ const formatTrip = (trip: Trip) => {
                     id: passenger.user.firebase_uid,
                     username: passenger.user.username,
                 },
+                pending: passenger.pending,
+                status: passenger.status,
+                meta: {
+                    createdAt: passenger.createdAt,
+                    updatedAt: passenger.updatedAt,
+                },
             }
         }),
         destination: {
@@ -96,29 +102,38 @@ export default class TripsController {
                 return response.forbidden({ error: 'trips/forbidden' })
             }
 
-            // Check if user has trips before loading all related data
-            const tripsLength = await Trip.query().where('driver_uid', uid)
-            if (tripsLength.length === 0) {
-                return response.ok({ data: [] })
-            }
-
-            // Load all related data
-            const trips = await Trip.query()
-                .where('driver_uid', uid)
+            const allTrips = await Trip.query()
                 .preload('user')
                 .preload('vehicle')
                 .preload('passengers', (query) => {
                     query.preload('user')
                 })
 
+            if (allTrips.length === 0) {
+                return response.ok({ data: [] })
+            }
+
             // Filter trips that are in the future or current date
-            const formattedTrips = trips
-                .filter((trip) => trip.date_of_trip >= new Date().toISOString())
+            const formattedTrips = allTrips
+                .filter((trip) => {
+                    const [day, month, year] = trip.date_of_trip.split('-').map(Number)
+                    const tripDate = new Date(year + 2000, month - 1, day)
+
+                    return tripDate >= new Date()
+                })
                 .map((trip) => {
                     return formatTrip(trip)
                 })
 
-            return response.ok({ data: formattedTrips })
+            // Filter trips so only trips where the user is a passenger or driver are returned. Regardless of status
+            const filteredTrips = formattedTrips.filter((trip) => {
+                return (
+                    trip.driver.id === uid ||
+                    trip.passengers.some((passenger) => passenger.driver.id === uid)
+                )
+            })
+
+            return response.ok({ data: filteredTrips })
         } catch (error) {
             console.log(error)
             return response.internalServerError({ error: 'trips/processing-error' })
@@ -261,6 +276,7 @@ export default class TripsController {
 
             return response.created({ msg: 'Trip created successfully' })
         } catch (error) {
+            console.log(error)
             if (error.code === 'E_VALIDATION_ERROR') {
                 return response.badRequest({ error: 'trips/validation-error' })
             }

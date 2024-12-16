@@ -38,6 +38,8 @@ export type Trips = {
         lat: number
         lng: number
         address: string
+        pending: boolean
+        status: string
         driver: {
             id: string
             username: string

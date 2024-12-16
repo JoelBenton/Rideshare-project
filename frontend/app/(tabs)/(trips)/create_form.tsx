@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { defaultStyles } from '@/src/constants/themes';
@@ -11,6 +11,7 @@ import { useSelector } from 'react-redux';
 import { createTrip as Ctrip } from '@/src/utils/types';
 import { useCreateTrip } from '@/src/hooks/useTrips';
 import { router } from 'expo-router';
+import { AuthContext } from '@/src/context/AuthContext';
 
 const CreateForm = () => {
   const [isPickerVisible, setPickerVisible] = useState(false);
@@ -25,7 +26,10 @@ const CreateForm = () => {
   const [tripData, setTripData] = useState<Ctrip | null>(null);
   const [create, setCreate] = useState(false);
 
+  const { user, initialized } = useContext(AuthContext);
+
   useEffect(() => {
+    console.log(tripData);
     async function createTrip() {
       if (create) {
         console.log(tripData);
@@ -46,7 +50,7 @@ const CreateForm = () => {
     createTrip();
   }, [create, tripData]);
 
-  const { mutateAsync: createTripMutation } = useCreateTrip(tripData);
+  const { mutateAsync: createTripMutation } = useCreateTrip(tripData, user.uid);
 
   const incrementSeats = () => setSeats((prev) => prev + 1);
   const decrementSeats = () => setSeats((prev) => (prev > 0 ? prev - 1 : 0));
@@ -88,16 +92,16 @@ const CreateForm = () => {
               Color: carColor,
               seats_available: seats,
               date_of_trip: selectedDate.toISOString(),
-              destination_lat: String(endModalLocation.latitude) || String(endLocation.latitude),
-              destination_long: String(endModalLocation.longitude) || String(endLocation.longitude),
-              destination_address: endModalLocation.address || endLocation.address,
-              origin_lat: String(startModalLocation.latitude) || String(startLocation.latitude),
-              origin_long: String(startModalLocation.longitude) || String(startLocation.longitude),
-              origin_address: startModalLocation.address || startLocation.address,
-            };
-        
+              destination_lat: endModalLocation ? String(endModalLocation.latitude) : String(endLocation.latitude),
+              destination_long: endModalLocation ? String(endModalLocation.longitude) : String(endLocation.longitude),
+              destination_address: endModalLocation ? endModalLocation.address : endLocation.address,
+              origin_lat: startModalLocation ? String(startModalLocation.latitude) : String(startLocation.latitude),
+              origin_long: startModalLocation ? String(startModalLocation.longitude) : String(startLocation.longitude),
+              origin_address: startModalLocation ? startModalLocation.address : startLocation.address,
+            }; 
+
             setTripData(tripData);
-        
+
             setCreate(true);
           },
         },

@@ -7,6 +7,8 @@ export const markerSchema = Vine.compile(
         longitude: Vine.string(),
         address: Vine.string(),
         user_uid: Vine.string(),
+        pending: Vine.boolean().optional(),
+        status: Vine.string().optional(),
     })
 )
 
@@ -18,5 +20,7 @@ export const markerUpdateSchema = Vine.compile(
         longitude: Vine.string().optional(),
         address: Vine.string().optional(),
         user_uid: Vine.string().optional(),
+        pending: Vine.boolean().optional(),
+        status: Vine.string().optional(),
     })
 )

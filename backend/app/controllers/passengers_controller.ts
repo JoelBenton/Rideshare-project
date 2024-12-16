@@ -71,6 +71,8 @@ export default class MarkersController {
                 lat: validatedPayload.latitude ?? marker.lat,
                 lng: validatedPayload.longitude ?? marker.lng,
                 address: validatedPayload.address ?? marker.address,
+                pending: validatedPayload.pending ?? marker.pending,
+                status: validatedPayload.status ?? marker.status,
             })
             await marker.save()
             return response.ok({ data: marker })

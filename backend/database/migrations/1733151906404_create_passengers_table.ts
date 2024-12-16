@@ -21,6 +21,9 @@ export default class extends BaseSchema {
                 .references('firebase_uid')
                 .inTable('users')
                 .onDelete('CASCADE')
+            table.boolean('pending').notNullable().defaultTo(true)
+            table.string('status').notNullable().defaultTo('pending')
+            table.timestamps(true, true)
         })
     }
 

@@ -10,7 +10,7 @@
 const AuthController = () => import('#controllers/auth_controller')
 const LocationsController = () => import('#controllers/locations_controller')
 const VehiclesController = () => import('#controllers/vehicles_controller')
-const MarkersController = () => import('#controllers/markers_controller')
+const MarkersController = () => import('#controllers/passengers_controller')
 const TripsController = () => import('#controllers/trips_controller')
 
 import router from '@adonisjs/core/services/router'

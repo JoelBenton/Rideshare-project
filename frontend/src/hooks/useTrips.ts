@@ -5,8 +5,6 @@ import { Alert } from 'react-native';
 import { FIREBASE_AUTH } from '../config/FirebaseConfig';
 
 
-const userId = FIREBASE_AUTH.currentUser?.uid
-
 const QUERY_KEYS = {
     TRIPS: ['trips'], // All Trips
     UPCOMING_TRIPS: ['upcoming-trips'], // All Upcoming Trips
@@ -29,7 +27,7 @@ export const useUpcomingTrips = () => {
     });
 }
 
-export const useUpcomingTripsForUser = () => {
+export const useUpcomingTripsForUser = (userId: string) => {
     return useQuery({
         queryKey: QUERY_KEYS.UPCOMING_TRIPS_FOR_USER(userId),
         queryFn: () => fetchUpcomingTripsForUser(userId),
@@ -37,7 +35,7 @@ export const useUpcomingTripsForUser = () => {
     });
 }
 
-export const useAllTripsForUser = () => {
+export const useAllTripsForUser = (userId: string) => {
     return useQuery({
         queryKey: QUERY_KEYS.ALL_TRIPS_FOR_USER(userId),
         queryFn: () => fetchAllTripsForUser(userId),
@@ -53,7 +51,7 @@ export const useTrip = (id: number) => {
     });
 }
 
-export const useCreateTrip = (trip: cTrip) => {
+export const useCreateTrip = (trip: cTrip, userId: string) => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: () => createTrip(trip),
@@ -71,7 +69,7 @@ export const useCreateTrip = (trip: cTrip) => {
     });
 }
 
-export const useUpdateTrip = (id: number, trip: uTrip) => {
+export const useUpdateTrip = (id: number, trip: uTrip, userId: string) => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: () => updateTrip(id.toString(), trip),
@@ -91,7 +89,7 @@ export const useUpdateTrip = (id: number, trip: uTrip) => {
     });
 }
 
-export const useDeleteTrip = (id: number) => {
+export const useDeleteTrip = (id: number, userId: string) => {
     const queryClient = useQueryClient();
 
     return useMutation({
