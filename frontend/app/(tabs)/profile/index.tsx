@@ -1,48 +1,47 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import CustomButton from '@/src/components/CustomButton';
 import { signOut } from 'firebase/auth';
 import { FIREBASE_AUTH } from '@/src/config/FirebaseConfig';
 import { useAuth } from '@/src/context/AuthContext';
 import { useRouter } from 'expo-router';
-import { Avatar } from "react-native-paper"; 
 
 const ProfileScreen = () => {
-  const { user  } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
 
   if (!user) {
-    return
+    return null;
   }
 
-  function handleChangePassword() {
-    router.push('/profile/changePassword')
-  }
+  const options = [
+    { title: 'Edit Profile', action: () => {} },
+    { title: 'Change Password', action: () => router.push('/profile/changePassword') },
+    { title: 'Ride History', action: () => {} },
+    { title: 'Log Out', action: () => signOut(FIREBASE_AUTH) },
+  ];
 
-  function handleEditProfile() {  
-    return;
-  }
-
-  const HandleSignOutPress = () => {
-    signOut(FIREBASE_AUTH);
-  }
+  const renderOption = ({ item }) => (
+    <TouchableOpacity style={styles.optionButton} onPress={item.action}>
+      <Text style={styles.optionText}>{item.title}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.profileSection}>
-        <Avatar.Image
-          size={128}
-          source={require('../../../assets/PlaceholderAvatar.png')}
-          style={styles.avatarShadow}
-        />
-        <Text style={styles.username}>{user.displayName}</Text>
+      {/* Header Section */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Welcome,</Text>
+        <Text style={styles.username}>{user.displayName || 'User'}</Text>
       </View>
 
-      <CustomButton title='Edit Profile' onPress={handleEditProfile} buttonStyle={styles.button} textStyle={styles.buttonText}/>
-      <CustomButton title='Change Password' onPress={handleChangePassword} buttonStyle={styles.button} textStyle={styles.buttonText}/>
-      <CustomButton title='Ride History' onPress={handleEditProfile} buttonStyle={styles.button} textStyle={styles.buttonText}/>
-      <CustomButton title='Log out' onPress={HandleSignOutPress} buttonStyle={styles.button} textStyle={styles.buttonText}/>
+      {/* Options List */}
+      <FlatList
+        data={options}
+        keyExtractor={(item) => item.title}
+        renderItem={renderOption}
+        contentContainerStyle={styles.listContainer}
+      />
     </SafeAreaView>
   );
 };
@@ -50,54 +49,47 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    backgroundColor: '#f4f4f4',
   },
-  profileSection: {
+  header: {
     backgroundColor: '#6a0dad',
-    width: '100%',
-    alignItems: 'center',
     paddingVertical: 40,
-    marginBottom: 30,
+    paddingHorizontal: 20,
+    alignItems: 'flex-start',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    elevation: 5,
   },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#D3D3D3',
-  },
-  avatarShadow: {
-    resizeMode: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+  headerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    marginBottom: 5,
+    fontWeight: '400',
   },
   username: {
     color: '#fff',
-    fontSize: 24,
-    marginTop: 10,
+    fontSize: 28,
     fontWeight: '700',
   },
-  button: {
-    width: '85%',
-    backgroundColor: '#D3D3D3',
-    marginBottom: 30,
-    borderRadius: 12,
-    padding: 0,
-    height: 40,
-    alignItems: 'center',
-    elevation: 3,
-    shadowColor: '#373737',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5,
-    shadowRadius: 3,
+  listContainer: {
+    marginTop: 20,
+    paddingHorizontal: 20,
   },
-  buttonText: {
-    fontSize: 18,
-    color: '#333',
+  optionButton: {
+    backgroundColor: '#fff',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginBottom: 15,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  optionText: {
+    fontSize: 16,
     fontWeight: '600',
-    fontFamily: 'InknutAntiqua_600SemiBold',
+    color: '#333',
   },
 });
 
