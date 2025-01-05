@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useReducer, useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { defaultStyles } from '@/src/constants/themes';
@@ -7,7 +7,7 @@ import SelectDateTimeButton from '@/src/components/SelectDateTimeButton';
 import { Ionicons } from '@expo/vector-icons';
 import CustomButton from '@/src/components/CustomButton';
 import { RootState } from '@/src/rematch/store';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { createTrip as Ctrip } from '@/src/utils/types';
 import { useCreateTrip } from '@/src/hooks/useTrips';
 import { router } from 'expo-router';
@@ -25,14 +25,13 @@ const CreateForm = () => {
   const [carColor, setCarColor] = useState('');
   const [tripData, setTripData] = useState<Ctrip | null>(null);
   const [create, setCreate] = useState(false);
-
+  
+  const dispatch = useDispatch();
   const { user, initialized } = useContext(AuthContext);
 
   useEffect(() => {
-    console.log(tripData);
     async function createTrip() {
       if (create) {
-        console.log(tripData);
         // Call the mutation
         const success = await createTripMutation();
   
@@ -43,6 +42,7 @@ const CreateForm = () => {
   
         // Show success alert
         Alert.alert('Success', 'Trip created successfully.');
+        dispatch.locations.resetLocations();
         router.push('/(tabs)/home');
       }
     }
@@ -78,7 +78,10 @@ const CreateForm = () => {
       [
         {
           text: "Cancel",
-          onPress: () => { return },
+          onPress: () => { 
+            dispatch.locations.resetLocations();
+            return 
+        },
           style: "cancel",
         },
         {
@@ -109,6 +112,30 @@ const CreateForm = () => {
       { cancelable: false }
     );
   };
+
+  const cancel = () => {
+    Alert.alert(
+      'Discard changes',
+      'Are you sure you want to discard your changes?',
+      [
+        {
+          text: 'Cancel',
+          onPress: () => { 
+            dispatch.locations.resetLocations();
+            return 
+          },
+          style: 'cancel',
+        },
+        {
+          text: 'OK',
+          onPress: () => {
+            router.push('/(tabs)/home');
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -186,7 +213,7 @@ const CreateForm = () => {
       <View style={{ flexGrow: 1 }} />
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <CustomButton title="Cancel" buttonStyle={{ flex: 1, marginRight: 10 }} />
+        <CustomButton title="Cancel" buttonStyle={{ flex: 1, marginRight: 10 }} onPress={cancel} />
         <CustomButton title="Create Trip" buttonStyle={{ flex: 1, marginLeft: 10 }} onPress={confirm} />
       </View>
 

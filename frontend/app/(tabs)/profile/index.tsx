@@ -17,7 +17,7 @@ const ProfileScreen = () => {
   const options = [
     { title: 'Edit Profile', action: () => {} },
     { title: 'Change Password', action: () => router.push('/profile/changePassword') },
-    { title: 'Ride History', action: () => {} },
+    { title: 'Ride History', action: () => router.push('/(tabs)/(trips)/history') },
     { title: 'Log Out', action: () => signOut(FIREBASE_AUTH) },
   ];
 

@@ -1,148 +1,208 @@
-import { FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import React, { useLayoutEffect, useRef, useState } from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { useLocalSearchParams } from 'expo-router'
-import { addDoc, collection, DocumentData, onSnapshot, orderBy, query, serverTimestamp } from 'firebase/firestore'
-import { FIRESTORE_DB } from '@/src/config/FirebaseConfig'
-import { useAuth } from '@/src/context/AuthContext'
-import { defaultStyles } from '@/src/constants/themes'
+import React, { useLayoutEffect, useRef, useState } from "react";
+import {
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
+import { addDoc, collection, DocumentData, onSnapshot, orderBy, query, serverTimestamp } from "firebase/firestore";
+import { FIRESTORE_DB } from "@/src/config/FirebaseConfig";
+import { useAuth } from "@/src/context/AuthContext";
 
 const ChatPage = () => {
-  const { id } = useLocalSearchParams<{ id: string}>();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
   const [messages, setMessages] = useState<DocumentData[]>([]);
-  const [message, setMessage] = useState<string>('');
+  const [message, setMessage] = useState<string>("");
 
   const flatListRef = useRef<FlatList>(null);
-  
+
   useLayoutEffect(() => {
     if (!user) return;
 
-    const msgCollectionRef = collection(FIRESTORE_DB, `groups/${id}/messages`)
-    const q = query(msgCollectionRef, orderBy('sentAt', 'asc'))
-    
-    // `onSnapshot` sets up a real-time listener on the Firestore query and updates the `messages` state whenever new data is available.
+    const msgCollectionRef = collection(FIRESTORE_DB, `groups/${id}/messages`);
+    const q = query(msgCollectionRef, orderBy("sentAt", "asc"));
+
     const subscribe = onSnapshot(q, (groups: DocumentData) => {
-      const groupMessages = groups.docs.map((doc) => {
-        return { id: doc.id, ...doc.data()}
-      });
-      
-      setMessages(groupMessages)
+      const groupMessages = groups.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setMessages(groupMessages);
     });
-    
-    return subscribe
+
+    return subscribe;
   }, []);
-  
+
   const sendMessage = async () => {
     if (!user) return;
 
-    const msg = message.trim();
-    if (msg.length === 0) return;
-    
-    const msgCollectionRef = collection(FIRESTORE_DB, `groups/${id}/messages`)
-    
+    const trimmedMessage = message.trim();
+    if (trimmedMessage.length === 0) return;
+
+    const msgCollectionRef = collection(FIRESTORE_DB, `groups/${id}/messages`);
+
     await addDoc(msgCollectionRef, {
-      message: msg,
+      message: trimmedMessage,
       sender: user.uid,
       senderName: user.displayName,
-      sentAt: serverTimestamp(), // As name suggests, uses the servers time not the local users. Allows for unity of timezone around server.
+      sentAt: serverTimestamp(),
     });
 
-    setMessage('');
-  }
+    setMessage("");
+  };
 
-  const renderMessage = ({ item }: { item: DocumentData}) => {
-    if (!user) return;
-    const myMessage = item.sender === user.uid;
-    
+  const renderMessage = ({ item }: { item: DocumentData }) => {
+    if (!user) return null;
+
+    const isMyMessage = item.sender === user.uid;
     return (
-      <View style={[styles.messageContainer, myMessage ? styles.currentUserMessageContainer : styles.otherUserMessageContainer]}>
-          <Text style={styles.messageText}>{item.message}</Text>
-          <Text style={myMessage ? styles.currentUserMessageDate : styles.otherUserMessageDate}>{item.senderName} - {item.sentAt?.toDate().toLocaleDateString()}</Text>
+      <View
+        style={[
+          styles.messageBubble,
+          isMyMessage ? styles.myMessage : styles.otherMessage,
+        ]}
+      >
+        <Text style={styles.messageText}>{item.message}</Text>
+        <Text style={styles.timestamp}>
+          {item.senderName} •{" "}
+          {item.sentAt?.toDate().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+        </Text>
       </View>
-    )
-  }
-  
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined} >
-        <FlatList 
-          ref={flatListRef} 
-          data={messages} 
-          keyExtractor={(item) => item.id} 
-          renderItem={renderMessage} 
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Chat</Text>
+        </View>
+
+        {/* Messages */}
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          renderItem={renderMessage}
+          contentContainerStyle={styles.messagesContainer}
           onLayout={() => flatListRef.current?.scrollToEnd({ animated: false })}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
         />
+
+        {/* Input */}
         <View style={styles.inputContainer}>
-          <TextInput multiline value={message} onChangeText={(text) => setMessage(text)} style={styles.messageInput} />
-          <TouchableOpacity disabled={message === ''} style={styles.button} onPress={sendMessage}>
-            <Text>Send</Text>
+          <TextInput
+            value={message}
+            onChangeText={setMessage}
+            style={styles.messageInput}
+            placeholder="Type a message..."
+          />
+          <TouchableOpacity
+            onPress={sendMessage}
+            disabled={!message.trim()}
+            style={styles.sendButton}
+          >
+            <Ionicons name="send" size={24} color="white" />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
-  )
-}
+  );
+};
 
-export default ChatPage
+export default ChatPage;
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    backgroundColor: "#F5F5F5",
     paddingBottom: Platform.OS === 'ios' ? -35 : 0,
   },
   container: {
     flex: 1,
   },
-  inputContainer: {
-    flexDirection: 'row',
+  header: {
+    height: 60,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#6A5ACD",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+  },
+  headerTitle: {
+    color: "white",
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  messagesContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 10,
+    paddingTop: 10,
+  },
+  messageBubble: {
+    maxWidth: "80%",
     padding: 10,
-    marginTop: 10,
-    backgroundColor: 'white',
+    borderRadius: 12,
+    marginVertical: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  messageInput: {
-    flex: 1,
-    borderColor: '#ddd',
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 10,
+  myMessage: {
+    backgroundColor: "#D1E7FF",
+    alignSelf: "flex-end",
+    marginRight: 10,
   },
-  button: {
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  messageContainer: {
-    padding: 10,
-    marginTop: 5,
-    marginHorizontal: 20, 
-    borderRadius: 10,
-    maxWidth: '80%',
-  },
-  currentUserMessageContainer: {
-    backgroundColor: '#dcf8c6',
-    alignSelf: 'flex-end'
-  },
-  otherUserMessageContainer: {
-    backgroundColor: '#fff',
-    alignSelf: 'flex-start'
+  otherMessage: {
+    backgroundColor: "#E6E6FA",
+    alignSelf: "flex-start",
+    marginLeft: 10,
   },
   messageText: {
     fontSize: 16,
-    fontFamily: defaultStyles.fontFamily,
-    alignSelf: 'flex-end'
+    color: "#333",
   },
-  currentUserMessageDate: {
-    fontSize: 9,
-    color: 'gray',
-    fontFamily: defaultStyles.fontFamily,
-    alignSelf: 'flex-end'
+  timestamp: {
+    fontSize: 12,
+    color: "#888",
+    marginTop: 5,
+    alignSelf: "flex-end",
   },
-  otherUserMessageDate: {
-    fontSize: 9,
-    color: 'gray',
-    fontFamily: defaultStyles.fontFamily,
-    alignSelf: 'flex-start'
-  }
-})
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+    backgroundColor: "#FFFFFF",
+    borderTopWidth: 1,
+    borderTopColor: "#E0E0E0",
+  },
+  messageInput: {
+    flex: 1,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#CCC",
+    borderRadius: 20,
+    backgroundColor: "#F9F9F9",
+    marginRight: 10,
+  },
+  sendButton: {
+    backgroundColor: "#6A5ACD",
+    padding: 10,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

@@ -2,6 +2,7 @@ import Trip from '#models/trip'
 import Vehicle from '#models/vehicle'
 import { tripSchema, tripUpdateSchema } from '#validators/trip'
 import type { HttpContext } from '@adonisjs/core/http'
+import { startGroup } from '../helper/group_helper.js'
 
 const formatTrip = (trip: Trip) => {
     return {
@@ -234,7 +235,7 @@ export default class TripsController {
             })
 
             if (validatedPayload.vehicle_id) {
-                await Trip.create({
+                const createdTrip = await Trip.create({
                     trip_name: validatedPayload.trip_name,
                     driver_uid: authUid,
                     vehicle_id: validatedPayload.vehicle_id,
@@ -249,6 +250,14 @@ export default class TripsController {
                     origin_lat: validatedPayload.origin_lat,
                     origin_long: validatedPayload.origin_long,
                 })
+
+                await startGroup(
+                    authUid,
+                    [],
+                    createdTrip.trip_name,
+                    createdTrip.id,
+                    createdTrip.date_of_trip
+                )
             } else {
                 const vehicle = await Vehicle.create({
                     owner_uid: authUid,
@@ -257,7 +266,7 @@ export default class TripsController {
                     color: validatedPayload.Color,
                 })
 
-                await Trip.create({
+                const createdTrip = await Trip.create({
                     trip_name: validatedPayload.trip_name,
                     driver_uid: authUid,
                     vehicle_id: vehicle.id,
@@ -272,8 +281,15 @@ export default class TripsController {
                     origin_lat: validatedPayload.origin_lat,
                     origin_long: validatedPayload.origin_long,
                 })
-            }
 
+                await startGroup(
+                    authUid,
+                    [],
+                    createdTrip.trip_name,
+                    createdTrip.id,
+                    createdTrip.date_of_trip
+                )
+            }
             return response.created({ msg: 'Trip created successfully' })
         } catch (error) {
             console.log(error)

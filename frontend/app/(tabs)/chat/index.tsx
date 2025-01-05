@@ -1,9 +1,9 @@
-import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { FIRESTORE_DB } from '@/src/config/FirebaseConfig';
-import { addDoc, collection, DocumentData, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '@/src/context/AuthContext';
 import { Link } from 'expo-router';
 
@@ -14,27 +14,33 @@ const ChatGroups = () => {
   useEffect(() => {
     const ref = collection(FIRESTORE_DB, 'groups');
     const unsubscribe = onSnapshot(ref, (snapshot) => {
-      const groupsData = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const groupsData = snapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          name: doc.data().name as string, 
+          creator: doc.data().creator as string,
+          users: doc.data().users as string[],
+          trip_id: doc.data().trip_id as string,
+          date_of_trip: doc.data().date_of_trip as string,
+        }))
+        .filter((group) => group.creator === user?.uid || group.users?.includes(user?.uid)); // Filter by creator or users array
+
+      groupsData.sort((a, b) => {
+        const parseDate = (dateStr: string) => {
+          const [day, month, year] = dateStr.split('-');
+          return new Date(`20${year}-${month}-${day}`);
+        };
+        
+        const dateA = parseDate(a.date_of_trip);
+        const dateB = parseDate(b.date_of_trip);
+        return dateB.getTime() - dateA.getTime(); // Sort by most recent first
+      });
+    
       setGroups(groupsData);
     });
 
     return unsubscribe;
-  }, []);
-
-  // const startGroup = async () => {
-  //   try {
-  //     await addDoc(collection(FIRESTORE_DB, 'groups'), {
-  //       name: `Group ${Math.floor(Math.random() * 1000)}`,
-  //       description: 'This is a chat group',
-  //       creator: user.uid,
-  //     });
-  //   } catch (error) {
-  //     console.log('Error Creating Group', error);
-  //   }
-  // };
+  }, [user]);
 
   if (groups.length === 0) {
     return (
@@ -46,18 +52,36 @@ const ChatGroups = () => {
     );
   }
 
+
+const parseDate = (dateString) => {
+  const [day, month, year] = dateString.split("-");
+  return new Date(`20${year}-${month}-${day}`); // Adjust year to full format (e.g., "24" -> "2024")
+};
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.groupsList}>
         {groups.map((group) => (
           <Link key={group.id} href={`/chat/${group.id}`} asChild>
             <TouchableOpacity style={styles.groupCard}>
-              <Ionicons name="chatbubble-ellipses-outline" size={24} color="#4B0082" style={styles.groupIcon} />
+              {/* Group Icon */}
+              <View style={styles.iconContainer}>
+                <Ionicons name="people-circle-outline" size={40} color="#6A5ACD" />
+              </View>
+
+              {/* Group Information */}
               <View style={styles.groupInfo}>
                 <Text style={styles.groupName}>{group.name}</Text>
-                <Text style={styles.groupDescription}>{group.description}</Text>
+                <Text style={styles.groupDate}>
+                  Trip Date: {parseDate(group.date_of_trip).toLocaleDateString()}
+                </Text>
+                {group.creator === user?.uid && (
+                  <Text style={styles.groupBadge}>Created by You</Text>
+                )}
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#4B0082" />
+
+              {/* Chevron Icon */}
+              <Ionicons name="chevron-forward" size={24} color="#6A5ACD" style={styles.chevronIcon} />
             </TouchableOpacity>
           </Link>
         ))}
@@ -69,51 +93,52 @@ const ChatGroups = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f4f4',
+    backgroundColor: "#F5F5F5",
   },
   groupsList: {
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   groupCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    marginBottom: 12,
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: "#000",
     shadowOpacity: 0.1,
-    shadowRadius: 3,
+    shadowRadius: 4,
     elevation: 2,
   },
-  groupIcon: {
-    marginRight: 15,
+  iconContainer: {
+    marginRight: 12,
   },
   groupInfo: {
     flex: 1,
   },
   groupName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
   },
-  groupDescription: {
+  groupDate: {
     fontSize: 14,
-    color: '#777',
+    color: "#777",
     marginTop: 4,
   },
-  fab: {
-    position: 'absolute',
-    width: 56,
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-    right: 20,
-    bottom: 20,
-    backgroundColor: '#4B0082',
-    borderRadius: 28,
-    elevation: 5,
+  groupBadge: {
+    marginTop: 6,
+    fontSize: 12,
+    color: "#FFFFFF",
+    backgroundColor: "#4B0082",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignSelf: "flex-start",
+  },
+  chevronIcon: {
+    marginLeft: 12,
   },
 });
 
