@@ -7,7 +7,7 @@ export default function StackLayout() {
             <Stack.Screen name='create_locations' options={{headerShown: false}} />
             <Stack.Screen name='create_form' options={{headerShown: false }} />
             <Stack.Screen name='search' options={{headerShown: false }} />
+            <Stack.Screen name='history' options={{headerShown: false }} />
         </Stack>
-        
     )
 }
