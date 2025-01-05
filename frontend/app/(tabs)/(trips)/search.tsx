@@ -36,8 +36,6 @@ const SearchTripsPage: React.FC = () => {
   const handleSearch = () => {
     setIsLoading(true);
 
-    console.log(UpcomingTrips);
-
     if (!UpcomingTrips) {
       setSearchResults([]);
       setIsLoading(false);

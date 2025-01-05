@@ -1,9 +1,17 @@
 import admin from 'firebase-admin'
 
-export const startGroup = async (creator_uid: string, users_uid: string[], group_name: string) => {
+export const startGroup = async (
+    creator_uid: string,
+    users_uid: string[],
+    group_name: string,
+    trip_id: number,
+    date_of_trip: string
+) => {
     try {
         const group = await admin.firestore().collection('groups').add({
             name: group_name,
+            trip_id: trip_id,
+            date_of_trip: date_of_trip,
             creator: creator_uid,
             users: users_uid,
         })
