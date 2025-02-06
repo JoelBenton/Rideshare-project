@@ -118,7 +118,8 @@ export default class TripsController {
             const formattedTrips = allTrips
                 .filter((trip) => {
                     const [day, month, year] = trip.date_of_trip.split('-').map(Number)
-                    const tripDate = new Date(year + 2000, month - 1, day)
+                    const [hour, minute] = trip.time_of_trip.split(':').map(Number)
+                    const tripDate = new Date(year + 2000, month - 1, day, hour, minute)
 
                     return tripDate >= new Date()
                 })

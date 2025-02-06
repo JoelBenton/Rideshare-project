@@ -5,31 +5,31 @@ import { Alert } from 'react-native';
 import { FIREBASE_AUTH } from '../config/FirebaseConfig';
 
 
-const QUERY_KEYS = {
+export const TRIP_QUERY_KEYS = {
     TRIPS: ['trips'], // All Trips
     UPCOMING_TRIPS: ['upcoming-trips'], // All Upcoming Trips
     UPCOMING_TRIPS_FOR_USER: (user_id: string) => ['upcoming-trips', user_id], // All Upcoming Trips for User
     ALL_TRIPS_FOR_USER: (user_id: string) => ['all-trips', user_id], // All Trips for User
-    TRIP: (id: number) => ['trip', id], // Single Trip
+    TRIP: (id: string) => ['trip', id], // Single Trip
 };
 
 export const useTrips = () => {
     return useQuery({
-        queryKey: QUERY_KEYS.TRIPS,
+        queryKey: TRIP_QUERY_KEYS.TRIPS,
         queryFn: fetchAllTrips,
     });
 }
 
 export const useUpcomingTrips = () => {
     return useQuery({
-        queryKey: QUERY_KEYS.UPCOMING_TRIPS,
+        queryKey: TRIP_QUERY_KEYS.UPCOMING_TRIPS,
         queryFn: fetchUpcomingTrips,
     });
 }
 
 export const useUpcomingTripsForUser = (userId: string) => {
     return useQuery({
-        queryKey: QUERY_KEYS.UPCOMING_TRIPS_FOR_USER(userId),
+        queryKey: TRIP_QUERY_KEYS.UPCOMING_TRIPS_FOR_USER(userId),
         queryFn: () => fetchUpcomingTripsForUser(userId),
         enabled: !!userId
     });
@@ -37,15 +37,15 @@ export const useUpcomingTripsForUser = (userId: string) => {
 
 export const useAllTripsForUser = (userId: string) => {
     return useQuery({
-        queryKey: QUERY_KEYS.ALL_TRIPS_FOR_USER(userId),
+        queryKey: TRIP_QUERY_KEYS.ALL_TRIPS_FOR_USER(userId),
         queryFn: () => fetchAllTripsForUser(userId),
         enabled: !!userId
     });
 }
 
-export const useTrip = (id: number) => {
+export const useTrip = (id: string) => {
     return useQuery({
-        queryKey: QUERY_KEYS.TRIP(id),
+        queryKey: TRIP_QUERY_KEYS.TRIP(id),
         queryFn: () => fetchTrip(id.toString()),
         enabled: !!id
     });
@@ -56,10 +56,10 @@ export const useCreateTrip = (trip: cTrip, userId: string) => {
     return useMutation({
         mutationFn: () => createTrip(trip),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS });
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.UPCOMING_TRIPS });
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ALL_TRIPS_FOR_USER(userId) });
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.UPCOMING_TRIPS_FOR_USER(userId) });
+            queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.TRIPS });
+            queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.UPCOMING_TRIPS });
+            queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.ALL_TRIPS_FOR_USER(userId) });
+            queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.UPCOMING_TRIPS_FOR_USER(userId) });
             return true;
         },
         onError: () => {
@@ -69,16 +69,16 @@ export const useCreateTrip = (trip: cTrip, userId: string) => {
     });
 }
 
-export const useUpdateTrip = (id: number, trip: uTrip, userId: string) => {
+export const useUpdateTrip = (id: string, trip: uTrip, userId: string) => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: () => updateTrip(id.toString(), trip),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS });
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.UPCOMING_TRIPS });
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIP(id) });
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ALL_TRIPS_FOR_USER(userId) });
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.UPCOMING_TRIPS_FOR_USER(userId) });
+            queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.TRIPS });
+            queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.UPCOMING_TRIPS });
+            queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.TRIP(id) });
+            queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.ALL_TRIPS_FOR_USER(userId) });
+            queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.UPCOMING_TRIPS_FOR_USER(userId) });
             Alert.alert('Success', 'Trip updated successfully.');
             return true;
         },
@@ -95,10 +95,10 @@ export const useDeleteTrip = (id: number, userId: string) => {
     return useMutation({
         mutationFn: () => deleteTrip(id.toString()),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TRIPS });
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.UPCOMING_TRIPS });
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ALL_TRIPS_FOR_USER(userId) });
-            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.UPCOMING_TRIPS_FOR_USER(userId) });
+            queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.TRIPS });
+            queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.UPCOMING_TRIPS });
+            queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.ALL_TRIPS_FOR_USER(userId) });
+            queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.UPCOMING_TRIPS_FOR_USER(userId) });
             return true;
         },
         onError: () => {

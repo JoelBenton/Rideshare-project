@@ -6,9 +6,11 @@ import { FIRESTORE_DB } from '@/src/config/FirebaseConfig';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '@/src/context/AuthContext';
 import { Link } from 'expo-router';
+import { sortGroupsByDate } from '@/src/utils/sort';
+import { Group } from '@/src/utils/types';
 
 const ChatGroups = () => {
-  const [groups, setGroups] = useState([]);
+  const [groups, setGroups] = useState<Group[]>([]);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -24,19 +26,8 @@ const ChatGroups = () => {
           date_of_trip: doc.data().date_of_trip as string,
         }))
         .filter((group) => group.creator === user?.uid || group.users?.includes(user?.uid)); // Filter by creator or users array
-
-      groupsData.sort((a, b) => {
-        const parseDate = (dateStr: string) => {
-          const [day, month, year] = dateStr.split('-');
-          return new Date(`20${year}-${month}-${day}`);
-        };
-        
-        const dateA = parseDate(a.date_of_trip);
-        const dateB = parseDate(b.date_of_trip);
-        return dateB.getTime() - dateA.getTime(); // Sort by most recent first
-      });
     
-      setGroups(groupsData);
+      setGroups(sortGroupsByDate(groupsData));
     });
 
     return unsubscribe;

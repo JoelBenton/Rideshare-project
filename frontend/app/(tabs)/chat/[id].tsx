@@ -15,6 +15,7 @@ import { useLocalSearchParams } from "expo-router";
 import { addDoc, collection, DocumentData, onSnapshot, orderBy, query, serverTimestamp } from "firebase/firestore";
 import { FIRESTORE_DB } from "@/src/config/FirebaseConfig";
 import { useAuth } from "@/src/context/AuthContext";
+import { convertDate } from "@/src/utils/date";
 
 const ChatPage = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -59,10 +60,36 @@ const ChatPage = () => {
     setMessage("");
   };
 
-  const renderMessage = ({ item }: { item: DocumentData }) => {
-    if (!user) return null;
+  const groupMessagesByDate = (messages: DocumentData[]) => {
+    const grouped: { date: string; data: DocumentData[] }[] = [];
+    let currentDate = "";
 
-    const isMyMessage = item.sender === user.uid;
+    messages.forEach((msg) => {
+      const messageDate = msg.sentAt?.toDate().toLocaleDateString() || "Unknown Date";
+
+      if (messageDate !== currentDate) {
+        grouped.push({ date: messageDate, data: [] });
+        currentDate = messageDate;
+      }
+
+      grouped[grouped.length - 1].data.push(msg);
+    });
+
+    return grouped;
+  };
+
+  const renderItem = ({ item }: { item: DocumentData }) => {
+    if (!item.message) {
+      // Render date header
+      return (
+        <View style={styles.dateHeader}>
+          <Text style={styles.dateHeaderText}>{convertDate(item.date, '/', false)}</Text>
+        </View>
+      );
+    }
+
+    // Render message
+    const isMyMessage = item.sender === user?.uid;
     return (
       <View
         style={[
@@ -79,8 +106,14 @@ const ChatPage = () => {
     );
   };
 
+  const groupedMessages = groupMessagesByDate(messages).flatMap((group) => [
+    { date: group.date },
+    ...group.data,
+  ]);
+
+  // SafeAreaView: Removes control of bottom due to conflict with KeyboardAvoidingView
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -93,9 +126,9 @@ const ChatPage = () => {
         {/* Messages */}
         <FlatList
           ref={flatListRef}
-          data={messages}
-          keyExtractor={(item) => item.id}
-          renderItem={renderMessage}
+          data={groupedMessages}
+          keyExtractor={(item, index) => item.id || item.date || index.toString()}
+          renderItem={renderItem}
           contentContainerStyle={styles.messagesContainer}
           onLayout={() => flatListRef.current?.scrollToEnd({ animated: false })}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
@@ -128,7 +161,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#F5F5F5",
-    paddingBottom: Platform.OS === 'ios' ? -35 : 0,
   },
   container: {
     flex: 1,
@@ -151,15 +183,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingTop: 10,
   },
+  dateHeader: {
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  dateHeaderText: {
+    fontSize: 14,
+    color: "#666",
+    backgroundColor: "#EEE",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+  },
   messageBubble: {
     maxWidth: "80%",
     padding: 10,
     borderRadius: 12,
     marginVertical: 5,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   myMessage: {
     backgroundColor: "#D1E7FF",
@@ -188,6 +228,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
     borderTopColor: "#E0E0E0",
+    marginTop: 10,
   },
   messageInput: {
     flex: 1,

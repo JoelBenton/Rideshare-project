@@ -9,7 +9,7 @@ export default class Passenger extends BaseModel {
     declare id: string
 
     @column()
-    declare trip_id: string
+    declare trip_id: number
 
     @column()
     declare lat: string

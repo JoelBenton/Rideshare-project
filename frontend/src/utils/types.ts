@@ -89,3 +89,61 @@ export type updateTrip = {
     origin_long: number | null
     origin_address: string | null
 }
+
+export type Group = {
+    id: string,
+    name: string, 
+    creator: string,
+    users: string[],
+    trip_id: string,
+    date_of_trip: string,
+};
+
+export type Passenger = {
+    id: string,
+    trip_id: string,
+    latitude: string,
+    longitude: string,
+    address: string,
+    user_id: string,
+    pending: string,
+    status: string
+}
+
+export type UpdatePassenger = {
+    id: string,
+    trip_id: string | null,
+    latitude: string | null,
+    longitude: string | null,
+    address: string | null,
+    user_id: string | null,
+    pending: string | null,
+    status: string | null
+}
+
+export type CreatePassenger = {
+    trip_id: string,
+    latitude: string,
+    longitude: string,
+    address: string,
+    user_uid: string,
+}
+
+export type OwnerUpdatePassenger = {
+    id: string,
+    pending: boolean | null,
+    status: string | null
+}
+
+export type TripPassengerFormat = {
+    id: number
+    lat: number
+    lng: number
+    address: string
+    pending: boolean
+    status: string
+    driver: {
+        id: string
+        username: string
+    }
+}

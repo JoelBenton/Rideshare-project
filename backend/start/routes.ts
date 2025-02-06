@@ -30,8 +30,11 @@ router
         // Routes
         router.post('/sync-database', () => {}) // Middleware syncs database. This route is just to call the middleware which synces the database
         router.post('/update-user-role', [AuthController, 'updateUserRole'])
-        router.get('/trip/:trip_id/markers', [MarkersController, 'TripsIndex'])
         router.post('/trip/:trip_id/marker', [MarkersController, 'store'])
+
+        router.put('/markers/:id/trip-owner-update', [MarkersController, 'tripOwnerUpdate'])
+
+        router.get('/trip/:trip_id/markers', [MarkersController, 'TripsIndex'])
         router.get('/user/:user_id/trips', [TripsController, 'userIndex'])
         router.get('/user/:user_id/trips/all', [TripsController, 'userTripsAll'])
         router.get('/trips/all', [TripsController, 'all'])

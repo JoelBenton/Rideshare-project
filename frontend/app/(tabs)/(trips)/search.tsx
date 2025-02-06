@@ -6,6 +6,7 @@ import { RideCard } from '@/src/components/rideCard';
 import { useUpcomingTrips } from '@/src/hooks/useTrips';
 import { NoRidesAvailableCard } from '@/src/components/NoRidesAvailableCard';
 import { Trips } from '@/src/utils/types';
+import { router } from 'expo-router';
 
 const SearchTripsPage: React.FC = () => {
   const [origin, setOrigin] = useState('');
@@ -117,7 +118,7 @@ const SearchTripsPage: React.FC = () => {
           {isLoading || isLoadingUpcomingTrips ? (
             <Text>Loading...</Text>
           ) : searchResults.length > 0 ? (
-            searchResults.map((trip) => <RideCard key={trip.id} data={trip} />)
+            searchResults.map((trip) => <RideCard key={trip.id} data={trip} onPress={() => router.push(`/(tabs)/(trips)/${trip.id}`)} />)
           ) : (
             <NoRidesAvailableCard />
           )}
