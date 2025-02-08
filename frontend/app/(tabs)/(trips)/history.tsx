@@ -11,21 +11,12 @@ import { AuthContext } from "@/src/context/AuthContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NoRidesAvailableCard } from "@/src/components/NoRidesAvailableCard";
 import { RideCard } from "@/src/components/rideCard";
+import { sortTripsByDate } from "@/src/utils/sort";
+import { router } from "expo-router";
 
 const RideHistory: React.FC = () => {
   const { user } = useContext(AuthContext);
   const { data: trips = [], isLoading } = useAllTripsForUser(user.uid); // Fetch trips via a custom hook or API
-
-  const dateSortedTrips = trips.data.sort((a, b) => {
-    const parseDate = (dateStr: string) => {
-      const [day, month, year] = dateStr.split('-');
-      return new Date(`20${year}-${month}-${day}`);
-    };
-
-    const dateA = parseDate(a.date_of_trip);
-    const dateB = parseDate(b.date_of_trip);
-    return dateB.getTime() - dateA.getTime(); // Sort by most recent first
-  });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -35,8 +26,8 @@ const RideHistory: React.FC = () => {
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {isLoading ? (
             <ActivityIndicator size="large" />
-          ) : dateSortedTrips.length > 0 ? (
-            dateSortedTrips.map((trip) => <RideCard key={trip.id} data={trip} />)
+          ) : trips.data.length > 0 ? (
+            sortTripsByDate(trips.data).map((trip) => <RideCard key={trip.id} data={trip} onPress={() => router.push(`/(tabs)/(trips)/${trip.id}`)} />)
           ) : (
             <NoRidesAvailableCard />
           )}

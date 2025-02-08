@@ -16,7 +16,7 @@ const HomePage: React.FC = () => {
   if (!user) {
     router.replace('/(auth)/login');
   }
-  const { data: Trips = [], isLoading } = useUpcomingTripsForUser(user.uid);
+  const { data: Trips = [], isLoading } = useUpcomingTripsForUser(user?.uid);
 
   let TripsData: Trips[] = [];
 
@@ -25,11 +25,9 @@ const HomePage: React.FC = () => {
   }
 
   const getClosestTrip = () => {
-    // Current date and time
-    const now = new Date();
 
     // Map trips to `Date` objects for comparison
-    const upcomingTrips = TripsData
+    const upcomingTrips = getUpcomingTrips()
       .map((trip) => {
         const [day, month, year] = trip.date_of_trip.split('-').map(Number);
         const [hour, minute] = trip.time_of_trip.split(':').map(Number);
@@ -51,12 +49,20 @@ const HomePage: React.FC = () => {
     return closestTrip;
   };
 
+  const getUpcomingTrips = () => {
+    if (!TripsData) {
+      return [];
+    }
+
+    return TripsData.filter((trip) => trip.driver.id === user.uid || trip.passengers.some((passenger) => passenger.driver.id === user.uid && trip.passengers.some((passenger) => passenger.status === 'confirmed')));
+  }
+
   const getRequestedTrips = () => {
     if (!TripsData) {
       return [];
     }
-    // Assuming there's a way to filter trips that you have requested but not confirmed
-    return TripsData.filter((trip) => trip.passengers.some((passenger) => passenger.driver.id === '123' && !trip.passengers.some((passenger) => passenger.status === 'confirmed')));
+
+    return TripsData.filter((trip) => trip.passengers.some((passenger) => passenger.driver.id === user.uid && !trip.passengers.some((passenger) => passenger.status === 'confirmed')));
   };
 
   return (
@@ -94,17 +100,23 @@ const HomePage: React.FC = () => {
               <ActivityIndicator size="large" color="#4B0082" />
               <Text style={styles.loadingText}>Loading trips...</Text>
             </View>
-          ) : Trips && Trips?.data && Trips?.data?.length > 0 ? (
-            <RideCard key={getClosestTrip().id} data={getClosestTrip()} />
+          ) : getClosestTrip() ? (
+            <>
+              <RideCard
+                key={getClosestTrip().id}
+                data={getClosestTrip()}
+                onPress={() => router.push(`/(tabs)/(trips)/${getClosestTrip().id}`)}
+              />
+              {getUpcomingTrips().length > 1 && (
+                <CustomButton
+                  title="View All Trips"
+                  buttonStyle={styles.viewAllButton}
+                  onPress={() => {}}
+                />
+              )}
+            </>
           ) : (
             <NoRidesAvailableCard />
-          )}
-          {Trips?.data?.length > 1 && (
-            <CustomButton
-              title="View All Trips"
-              buttonStyle={styles.viewAllButton}
-              onPress={() => {}}
-            />
           )}
         </View>
 
@@ -118,7 +130,7 @@ const HomePage: React.FC = () => {
             </View>
           ) : getRequestedTrips().length > 0 ? (
             getRequestedTrips().map((trip) => (
-              <RideCard key={trip.id} data={trip} />
+              <RideCard key={trip.id} data={trip} onPress={() => router.push(`/(tabs)/(trips)/${trip.id}`)}/>
             ))
           ) : (
             <Text style={styles.noTripsText}>No requested trips found.</Text>

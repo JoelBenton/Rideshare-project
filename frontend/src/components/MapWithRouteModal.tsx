@@ -10,11 +10,14 @@ import MapView, { Marker, Polyline, UrlTile } from "react-native-maps";
 
 const MapWithRouteModal = ({
   visible,
-  onCancel,
-  onContinue,
+  onCancel = () => {},
+  onContinue = () => {},
+  onClose = () => {},
   startLocation,
   endLocation,
   middleMarkers = [],
+  mainMarker = null, // Optional main marker
+  buttonType = "default", // "default" (Cancel/Continue) or "close" (single Close button)
 }) => {
   if (!startLocation || !endLocation) return null;
 
@@ -24,10 +27,10 @@ const MapWithRouteModal = ({
         <MapView
           style={styles.map}
           region={{
-            latitude: startLocation.latitude,
-            longitude: startLocation.longitude,
-            latitudeDelta: 0.5,
-            longitudeDelta: 0.5,
+            latitude: mainMarker?.latitude || startLocation.latitude,
+            longitude: mainMarker?.longitude || startLocation.longitude,
+            latitudeDelta: 0.005,
+            longitudeDelta: 0.005,
           }}
           showsUserLocation={true}
         >
@@ -35,6 +38,19 @@ const MapWithRouteModal = ({
             urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             maximumZ={19}
           />
+
+          {/* Main Marker (if provided) */}
+          {mainMarker && (
+            <Marker
+              coordinate={{
+                latitude: mainMarker.latitude,
+                longitude: mainMarker.longitude,
+              }}
+              // title="Requested Pickup Location"
+              title={`Requested Pickup Location for: ${mainMarker.username}`}
+              pinColor="purple"
+            />
+          )}
 
           {/* Start Location Marker */}
           <Marker
@@ -64,7 +80,7 @@ const MapWithRouteModal = ({
                 latitude: marker.latitude,
                 longitude: marker.longitude,
               }}
-              title={marker.address}
+              title={marker.username}
               pinColor="blue"
             />
           ))}
@@ -80,13 +96,22 @@ const MapWithRouteModal = ({
           />
         </MapView>
 
+        {/* Button Section */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
-            <Text style={styles.buttonText}>Cancel</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.continueButton} onPress={onContinue}>
-            <Text style={styles.buttonText}>Continue</Text>
-          </TouchableOpacity>
+          {buttonType === "default" ? (
+            <>
+              <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.continueButton} onPress={onContinue}>
+                <Text style={styles.buttonText}>Continue</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Text style={styles.buttonText}>Close</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </Modal>
@@ -124,6 +149,13 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 10,
     backgroundColor: "#4CAF50",
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  closeButton: {
+    flex: 1,
+    backgroundColor: "#555",
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: "center",
