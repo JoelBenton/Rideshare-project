@@ -72,7 +72,7 @@ const changePassword: React.FC = () => {
             return
         };
 
-        updatePassword(currentUser, password)
+        await updatePassword(currentUser, password)
         Alert.alert('Password Updated');
         router.back();
 

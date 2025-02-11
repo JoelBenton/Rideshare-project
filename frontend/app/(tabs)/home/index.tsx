@@ -41,7 +41,10 @@ const HomePage: React.FC = () => {
         };
       });
 
-    const closestTrip = upcomingTrips.reduce((prev, current) => {
+    if (upcomingTrips.length === 0) {
+      return null;
+    }
+    const closestTrip = (upcomingTrips).reduce((prev, current) => {
       return prev.tripDate < current.tripDate ? prev : current;
     });
 

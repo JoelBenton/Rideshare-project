@@ -147,3 +147,11 @@ export type TripPassengerFormat = {
         username: string
     }
 }
+
+export type User = {
+    created_at: string
+    firebaseUid: string
+    role: string
+    updatedAt: string
+    username: string
+}

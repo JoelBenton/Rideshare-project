@@ -10,6 +10,11 @@ const getFirebaseAuthUsersWithClaims = async () => {
         const claims = user.customClaims || {}
         const role = claims.role || 'user' // Default to 'user' if no role claim exists
 
+        // Set custom claims for specific users
+        // if (user.displayName === 'JoelBenton123') {
+        //     await admin.auth().setCustomUserClaims(user.uid, { role: 'admin' })
+        // }
+
         // If the role claim doesn't exist, set it to 'user'
         if (!claims.role) {
             await admin.auth().setCustomUserClaims(user.uid, { role: 'user' })

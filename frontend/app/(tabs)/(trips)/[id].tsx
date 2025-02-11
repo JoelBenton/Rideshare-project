@@ -122,7 +122,6 @@ const TripDetailsPage = () => {
 
     const handleEditTrip = () => {
         if (trip.data.seats_occupied === 0) {
-            console.log(`Editing trip with ID: ${trip.data.id}`);
             return;
         }
         else {
@@ -132,7 +131,6 @@ const TripDetailsPage = () => {
                 [
                     {
                         text: "OK",
-                        onPress: () => console.log("OK Pressed"),
                     },
                 ]
             )
@@ -140,7 +138,6 @@ const TripDetailsPage = () => {
     };
 
     const handleCancelTrip = () => {
-        console.log(`Cancelling trip with ID: ${trip.data.id}`);
 
         if (trip.data.seats_occupied === 0) {
             Alert.alert(
@@ -149,12 +146,12 @@ const TripDetailsPage = () => {
                 [
                     {
                         text: "Cancel",
-                        onPress: () => console.log("Cancel Pressed"),
+                        onPress: () => {},
                         style: "cancel",
                     },
                     {
                         text: "OK",
-                        onPress: () => console.log("OK Pressed"),
+                        onPress: () => {},
                     },
                 ],
                 { cancelable: true }
@@ -167,7 +164,7 @@ const TripDetailsPage = () => {
                 [
                     {
                         text: "OK",
-                        onPress: () => console.log("OK Pressed"),
+                        onPress: () => {},
                     },
                 ]
             )
