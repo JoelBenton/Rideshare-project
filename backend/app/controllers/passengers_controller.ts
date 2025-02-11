@@ -49,7 +49,6 @@ export default class MarkersController {
             const marker = await Passenger.create(validatedPayload)
             return response.created({ data: marker })
         } catch (error) {
-            console.log(error)
             if (error.code === 'E_VALIDATION_ERROR') {
                 return response.badRequest({ error: 'markers/validation-error' })
             }

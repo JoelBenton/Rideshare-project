@@ -5,6 +5,7 @@ import {
 } from 'firebase/auth';
 import { FIREBASE_AUTH } from '@/src/config/FirebaseConfig';
 import { setUserInformation } from '@/src/utils/auth';
+import { checkEmail } from '@/src/api/whitelist';
 
 export const useAuth = () => {
   const handleAuth = async (email: string, password: string, username: string, isSignUp: boolean, role: string = "user") => {
@@ -32,6 +33,9 @@ export const useAuth = () => {
           // Sign-in logic
           userCredential = await signInWithEmailAndPassword(FIREBASE_AUTH, email, password);
         } else {
+            
+          await checkEmail(email);
+
           // Sign-up logic
           userCredential = await createUserWithEmailAndPassword(FIREBASE_AUTH, email, password);
           
@@ -45,6 +49,10 @@ export const useAuth = () => {
 
         if (isSignUp && error.code === 'auth/email-already-in-use') {
           return { success: false, error: 'Email already in use. Please use a different email.' };
+        }
+
+        if (isSignUp && error.message === 'whitelist/email-not-found') {
+          return { success : false, error: 'Email not found in whitelist' };
         }
 
         return { success: false, error: 'Authentication error: ' + error.message };

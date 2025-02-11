@@ -103,7 +103,6 @@ const MapWithSearchAndRoute = ({
       Alert.alert("Error", "Please select a different location.");
       return;
     }
-    console.log(marker)
     // Handle confirm logic here
     onRequest({latitude: marker.coordinate.latitude, longitude: marker.coordinate.longitude, address: marker.title});
   };

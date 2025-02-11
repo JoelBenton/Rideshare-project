@@ -86,7 +86,6 @@ export default class TripsController {
 
             return response.ok({ data: formattedTrips })
         } catch (error) {
-            console.log(error)
             return response.internalServerError({ error: 'trips/processing-error' })
         }
     }
@@ -137,7 +136,6 @@ export default class TripsController {
 
             return response.ok({ data: filteredTrips })
         } catch (error) {
-            console.log(error)
             return response.internalServerError({ error: 'trips/processing-error' })
         }
     }
@@ -166,7 +164,6 @@ export default class TripsController {
 
             return response.ok({ data: formattedTrips })
         } catch (error) {
-            console.log(error)
             return response.internalServerError({ error: 'trips/processing-error' })
         }
     }
@@ -204,7 +201,6 @@ export default class TripsController {
 
             return response.ok({ data: formattedTrips })
         } catch (error) {
-            console.log(error)
             return response.internalServerError({ error: 'trips/processing-error' })
         }
     }
@@ -214,7 +210,6 @@ export default class TripsController {
      */
     async store({ request, response }: HttpContext) {
         try {
-            console.log('Creating trip')
             const { authUid, ...payload } = request.all()
 
             const validatedPayload = await tripSchema.validate(payload)
@@ -293,7 +288,6 @@ export default class TripsController {
             }
             return response.created({ msg: 'Trip created successfully' })
         } catch (error) {
-            console.log(error)
             if (error.code === 'E_VALIDATION_ERROR') {
                 return response.badRequest({ error: 'trips/validation-error' })
             }
@@ -388,7 +382,6 @@ export default class TripsController {
             await trip.save()
             return response.ok({ msg: 'Trip updated successfully' })
         } catch (error) {
-            console.log(error)
             if (error.code === 'E_ROW_NOT_FOUND') {
                 return response.notFound({ error: 'trips/not-found' })
             }
