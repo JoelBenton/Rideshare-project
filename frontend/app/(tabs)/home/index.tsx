@@ -57,7 +57,7 @@ const HomePage: React.FC = () => {
       return [];
     }
 
-    return TripsData.filter((trip) => trip.driver.id === user.uid || trip.passengers.some((passenger) => passenger.driver.id === user.uid && trip.passengers.some((passenger) => passenger.status === 'confirmed')));
+    return TripsData.filter((trip) => trip.driver.id === user?.uid || trip.passengers.some((passenger) => passenger.driver.id === user?.uid && trip.passengers.some((passenger) => passenger.status === 'confirmed')));
   }
 
   const getRequestedTrips = () => {
@@ -65,7 +65,7 @@ const HomePage: React.FC = () => {
       return [];
     }
 
-    return TripsData.filter((trip) => trip.passengers.some((passenger) => passenger.driver.id === user.uid && !trip.passengers.some((passenger) => passenger.status === 'confirmed')));
+    return TripsData.filter((trip) => trip.passengers.some((passenger) => passenger.driver.id === user?.uid && !trip.passengers.some((passenger) => passenger.status === 'confirmed')));
   };
 
   return (
@@ -114,7 +114,7 @@ const HomePage: React.FC = () => {
                 <CustomButton
                   title="View All Trips"
                   buttonStyle={styles.viewAllButton}
-                  onPress={() => {}}
+                  onPress={() => router.push(`/(tabs)/(trips)/upcoming`)}
                 />
               )}
             </>

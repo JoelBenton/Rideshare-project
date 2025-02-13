@@ -21,6 +21,7 @@ const TripDetailsPage = () => {
     const [isModalVisiblePassenger, setIsModalVisiblePassenger] = useState(false);
     const [isRequestLoading, setIsRequestLoading] = useState(false);
     const [isRequestAccepted, setIsRequestAccepted] = useState(false);
+    const [isRequestRejected, setIsRequestRejected] = useState(false);
     const [passenger, setPassenger] = useState<CreatePassenger | null>(null);
     const [create, setCreate] = useState(false);
     const [updatePassengerRequest, setUpdatePassengerRequest] = useState(false);
@@ -61,6 +62,10 @@ const TripDetailsPage = () => {
 
                 if (trip.data.passengers.some((passenger) => passenger.driver.id === user?.uid && passenger.status === 'confirmed')) {
                     setIsRequestAccepted(true);
+                }
+
+                if (trip.data.passengers.some((passenger) => passenger.driver.id === user?.uid && passenger.status === 'declined')) {
+                    setIsRequestRejected(true);
                 }
             }
         }
@@ -393,9 +398,9 @@ const TripDetailsPage = () => {
 
                 {/* Accepted Passengers Section */}
                 <Text style={styles.sectionTitle}>{isOwner ? "Accepted Passengers" : "Passengers"}</Text>
-                {trip.data.passengers.filter((p) => !p.pending).length > 0 ? (
+                {trip.data.passengers.filter((p) => !p.pending && p.status === 'confirmed').length > 0 ? (
                 trip.data.passengers
-                    .filter((passenger) => passenger.pending == 0)
+                    .filter((passenger) => passenger.pending == 0 && passenger.status === 'confirmed')
                     .map((passenger) => (
                     <View key={passenger.id} style={styles.passengerContainer}>
                         <Text style={styles.passengerText}>
@@ -421,10 +426,16 @@ const TripDetailsPage = () => {
                     </TouchableOpacity>
                 )}
 
-                {!isOwner && active && !full && isRequestSent && !isRequestAccepted && (
+                {!isOwner && active && !full && isRequestSent && !isRequestAccepted && !isRequestRejected &&  (
                     <View style={styles.requestButton}>
                         <Text style={styles.requestButtonText}>Request sent</Text>
                     </View>
+                )}
+
+                {!isOwner && active && !full && isRequestSent && !isRequestAccepted && isRequestRejected &&  (
+                <View style={styles.requestButton}>
+                    <Text style={styles.requestButtonText}>Request Declined</Text>
+                </View>
                 )}
 
                 {/* Cancel Trip Button */}

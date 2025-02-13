@@ -50,7 +50,7 @@ const CreateForm = () => {
     createTrip();
   }, [create, tripData]);
 
-  const { mutateAsync: createTripMutation } = useCreateTrip(tripData, user.uid);
+  const { mutateAsync: createTripMutation } = useCreateTrip(tripData, user?.uid);
 
   const incrementSeats = () => setSeats((prev) => prev + 1);
   const decrementSeats = () => setSeats((prev) => (prev > 0 ? prev - 1 : 0));

@@ -1,6 +1,7 @@
 import Passenger from '#models/passenger'
 import type { HttpContext } from '@adonisjs/core/http'
 import { markerSchema, markerUpdateSchema, tripOwnerMarkerUpdateSchema } from '#validators/marker'
+import { addUsersToGroup, getGroupIdByTripId } from '../helper/group_helper.js'
 
 export default class MarkersController {
     /**
@@ -130,6 +131,17 @@ export default class MarkersController {
                 pending: validatedPayload.pending ?? marker.pending,
                 status: validatedPayload.status ?? marker.status,
             })
+
+            if (marker.status === 'confirmed') {
+                const data = await getGroupIdByTripId(marker.trip_id)
+                if (data.group) {
+                    await addUsersToGroup(data.group, [marker.user_uid])
+                }
+
+                marker.trip.seats_occupied += 1
+                await marker.trip.save()
+            }
+
             await marker.save()
             return response.ok({ data: marker })
         } catch (error) {

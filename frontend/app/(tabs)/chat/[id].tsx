@@ -52,8 +52,8 @@ const ChatPage = () => {
 
     await addDoc(msgCollectionRef, {
       message: trimmedMessage,
-      sender: user.uid,
-      senderName: user.displayName,
+      sender: user?.uid,
+      senderName: user?.displayName,
       sentAt: serverTimestamp(),
     });
 
@@ -116,7 +116,7 @@ const ChatPage = () => {
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "padding"}
       >
         {/* Header */}
         <View style={styles.header}>

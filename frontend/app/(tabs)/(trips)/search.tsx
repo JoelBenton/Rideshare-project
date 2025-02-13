@@ -7,6 +7,9 @@ import { useUpcomingTrips } from '@/src/hooks/useTrips';
 import { NoRidesAvailableCard } from '@/src/components/NoRidesAvailableCard';
 import { Trips } from '@/src/utils/types';
 import { router } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/src/context/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
 
 const SearchTripsPage: React.FC = () => {
   const [origin, setOrigin] = useState('');
@@ -14,9 +17,12 @@ const SearchTripsPage: React.FC = () => {
   const [tripName, setTripName] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showFilters, setShowFilters] = useState(true); // State to toggle filters
+  const [showFilters, setShowFilters] = useState(false); // State to toggle filters
+  const { user: currentUser } = useAuth();
 
-  const { data: UpcomingTripsData = [], isLoading: isLoadingUpcomingTrips } = useUpcomingTrips();
+  const { data: UpcomingTripsData = [], isLoading: isLoadingUpcomingTrips, isFetching } = useUpcomingTrips();
+
+  const queryClient = useQueryClient();
 
   let UpcomingTrips: Trips[] = [];
 
@@ -71,9 +77,18 @@ const SearchTripsPage: React.FC = () => {
     setSearchResults(UpcomingTrips || []); // Show all trips when filters are cleared
   };
 
+  const handleRefresh = () => {
+    queryClient.refetchQueries({ queryKey:['upcoming-trips']});
+};
+
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Search Trips</Text>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity style={styles.refreshIcon} onPress={handleRefresh} disabled={isFetching}>
+          <Ionicons name="refresh-outline" size={24} color="#555" />
+        </TouchableOpacity>
+        <Text style={styles.title}>Search Trips</Text>
+      </View>
 
       <CustomButton
         title={showFilters ? 'Hide Filters' : 'Show Filters'}
@@ -192,6 +207,16 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingBottom: 20,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
+  },
+  refreshIcon: {
+    position: "absolute",
+    left: 0,
   },
 });
 

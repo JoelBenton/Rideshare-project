@@ -9,6 +9,7 @@ export default function StackLayout() {
             <Stack.Screen name='search' options={{headerShown: false }} />
             <Stack.Screen name='history' options={{headerShown: false }} />
             <Stack.Screen name='[id]' options={{headerShown: false }} />
+            <Stack.Screen name='upcoming' options={{headerShown: false }} />
         </Stack>
     )
 }

@@ -181,25 +181,28 @@ export default class TripsController {
             }
 
             // Check if user has trips before loading all related data
-            const tripsLength = await Trip.query().where('driver_uid', userUid)
-            if (tripsLength.length === 0) {
-                return response.ok({ data: [] })
-            }
-
-            const trips = await Trip.query()
-                .where('driver_uid', userUid)
+            const allTrips = await Trip.query()
                 .preload('user')
                 .preload('vehicle')
                 .preload('passengers', (query) => {
                     query.preload('user')
                 })
 
-            // Filter trips that are in the future or current date
-            const formattedTrips = trips.map((trip) => {
-                return formatTrip(trip)
-            })
+            const filteredTrips = allTrips
+                .map((trip) => {
+                    return formatTrip(trip)
+                })
+                .filter((trip) => {
+                    return (
+                        trip.driver.id === userUid ||
+                        trip.passengers.some((passenger) => passenger.driver.id === userUid)
+                    )
+                })
+            if (filteredTrips.length === 0) {
+                return response.ok({ data: [] })
+            }
 
-            return response.ok({ data: formattedTrips })
+            return response.ok({ data: filteredTrips })
         } catch (error) {
             return response.internalServerError({ error: 'trips/processing-error' })
         }

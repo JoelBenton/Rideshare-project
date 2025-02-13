@@ -31,7 +31,7 @@ const AdminWhitelistScreen: React.FC = () => {
       setLoadingUsers(true);
       try {
         let data = await fetchUsers();
-        data = data.data.filter((user: User) => user.firebaseUid != currentUser.uid);
+        data = data.data.filter((user: User) => user.firebaseUid != currentUser?.uid);
         setUsers(data);
       } catch (error) {
         Alert.alert('Error', error.message);

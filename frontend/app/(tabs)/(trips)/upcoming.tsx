@@ -6,7 +6,7 @@ import {
   ScrollView,
 } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
-import { useAllTripsForUser } from "@/src/hooks/useTrips"; // Replace with your actual data-fetching hook
+import { useUpcomingTripsForUser } from "@/src/hooks/useTrips"; // Replace with your actual data-fetching hook
 import { AuthContext } from "@/src/context/AuthContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NoRidesAvailableCard } from "@/src/components/NoRidesAvailableCard";
@@ -14,20 +14,28 @@ import { RideCard } from "@/src/components/rideCard";
 import { sortTripsByDate } from "@/src/utils/sort";
 import { router } from "expo-router";
 
-const RideHistory: React.FC = () => {
+const UpcomingTrips: React.FC = () => {
   const { user } = useContext(AuthContext);
-  const { data: trips = [], isLoading } = useAllTripsForUser(user?.uid); // Fetch trips via a custom hook or API
+  const { data: trips = [], isLoading } = useUpcomingTripsForUser(user?.uid);
+
+  const getUpcomingTrips = () => {
+    if (!trips) {
+      return [];
+    }
+
+    return trips.data.filter((trip) => trip.driver.id === user?.uid || trip.passengers.some((passenger) => passenger.driver.id === user?.uid && trip.passengers.some((passenger) => passenger.status === 'confirmed')));
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Search Results Section */}
       <View style={styles.resultsContainer}>
-        <Text style={styles.sectionTitle}>Ride History</Text>
+        <Text style={styles.sectionTitle}>Upcoming Trips</Text>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {isLoading ? (
             <ActivityIndicator size="large" />
-          ) : trips.data.length > 0 ? (
-            sortTripsByDate(trips.data).map((trip) => <RideCard key={trip.id} data={trip} onPress={() => router.push(`/(tabs)/(trips)/${trip.id}`)} />)
+          ) : getUpcomingTrips().length > 0 ? (
+            sortTripsByDate(getUpcomingTrips()).map((trip) => <RideCard key={trip.id} data={trip} onPress={() => router.push(`/(tabs)/(trips)/${trip.id}`)} />)
           ) : (
             <NoRidesAvailableCard />
           )}
@@ -59,4 +67,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RideHistory;
+export default UpcomingTrips;

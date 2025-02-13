@@ -64,6 +64,19 @@ export const getGroup = async (group_id: string) => {
     }
 }
 
+export const getGroupIdByTripId = async (trip_id: number) => {
+    try {
+        const group = await admin
+            .firestore()
+            .collection('groups')
+            .where('trip_id', '==', trip_id)
+            .get()
+        return { success: true, group: group.docs[0].id }
+    } catch (error) {
+        return { success: false, error: error }
+    }
+}
+
 export const getAllGroups = async () => {
     try {
         const groups = await admin.firestore().collection('groups').get()
