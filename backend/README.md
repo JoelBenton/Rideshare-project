@@ -24,3 +24,47 @@ Why This is a Good Approach:
 Potential Drawback:
 
 The main trade-off is that your backend will be somewhat dependent on Firebase for user authentication and email management.
+
+
+## How to setup Docker instance of Backend for Running in a Server
+
+### 1. Setup Docker image
+
+Navigate to your project folder on the Raspberry Pi and build the Docker image:
+
+```
+docker build -t adonis-app .
+```
+
+This might take a few minutes as it installs dependencies.
+
+### 2. Step 3: Run the Container Manually (For Testing)
+
+Before setting it up in Portainer (If using), test the container to ensure it works:
+
+```
+docker run -p 3333:3333 --env-file .env adonis-app
+```
+
+- If you need hot reloading, mount the project directory:
+```
+docker run -p 3333:3333 -v /home/pi/adonis-app:/app adonis-app
+```
+
+### 3. Deploy via Portainer
+
+1. Access Portainer
+2. Create a New Container
+	1.	Click “Containers” > “Add container”
+	2.	Name the container: adonis-app
+	3.	Use your built image:
+In the Image field, type: `adonis-app`
+    4.	Set the network settings: Under Port mapping, add: `Host: 3333 | Container: 3333`
+    5.	Mount Volumes (Optional, for Hot Reloading): `/home/pi/adonis-app:/app`
+    6.	Set Environment Variables
+       1. Click “Env” and add: `Key: PORT Value: 3333`
+    7. Command to run: `NPM RUN DEV`
+    8. Click Deploy Container
+
+
+

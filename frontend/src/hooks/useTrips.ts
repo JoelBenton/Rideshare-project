@@ -62,8 +62,8 @@ export const useCreateTrip = (trip: cTrip, userId: string) => {
             queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.UPCOMING_TRIPS_FOR_USER(userId) });
             return true;
         },
-        onError: () => {
-            Alert.alert('Error', 'Failed to update location.');
+        onError: (error) => {
+            Alert.alert('Error', 'Failed to Create Trip.' + error);
             return false;
         }
     });
@@ -83,7 +83,7 @@ export const useUpdateTrip = (id: string, trip: uTrip, userId: string) => {
             return true;
         },
         onError: () => {
-            Alert.alert('Error', 'Failed to update location.');
+            Alert.alert('Error', 'Failed to create Trip.');
             return false;
         }
     });

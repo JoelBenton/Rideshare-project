@@ -14,7 +14,7 @@ import { router } from 'expo-router';
 const HomePage: React.FC = () => {
   const { user } = useContext(AuthContext)
   if (!user) {
-    router.replace('/(auth)/login');
+    router.push('/(auth)/login');
   }
   const { data: Trips = [], isLoading } = useUpcomingTripsForUser(user?.uid);
 

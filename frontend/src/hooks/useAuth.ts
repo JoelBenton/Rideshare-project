@@ -61,8 +61,6 @@ export const useAuth = () => {
       // Step 3: Get the Firebase ID token (JWT)
       const idToken = await userCredential.user.getIdToken();
 
-      console.log('idToken', idToken)
-
       // Step 4: Sync database with the backend
       await fetch(`${apiEndpoint}/sync-database`, {
         method: 'POST',

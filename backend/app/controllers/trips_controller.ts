@@ -59,6 +59,7 @@ export default class TripsController {
      */
     async index({ response }: HttpContext) {
         try {
+            console.log('List Trips Called')
             const tripsLength = await Trip.all()
 
             if (tripsLength.length === 0) {

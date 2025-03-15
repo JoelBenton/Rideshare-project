@@ -12,7 +12,15 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import { addDoc, collection, DocumentData, onSnapshot, orderBy, query, serverTimestamp } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  DocumentData,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+} from "firebase/firestore";
 import { FIRESTORE_DB } from "@/src/config/FirebaseConfig";
 import { useAuth } from "@/src/context/AuthContext";
 import { convertDate } from "@/src/utils/date";
@@ -65,7 +73,8 @@ const ChatPage = () => {
     let currentDate = "";
 
     messages.forEach((msg) => {
-      const messageDate = msg.sentAt?.toDate().toLocaleDateString() || "Unknown Date";
+      const messageDate =
+        msg.sentAt?.toDate().toLocaleDateString() || "Unknown Date";
 
       if (messageDate !== currentDate) {
         grouped.push({ date: messageDate, data: [] });
@@ -78,12 +87,19 @@ const ChatPage = () => {
     return grouped;
   };
 
+  const groupedMessages = groupMessagesByDate(messages).flatMap((group) => [
+    { date: group.date },
+    ...group.data,
+  ]);
+
   const renderItem = ({ item }: { item: DocumentData }) => {
     if (!item.message) {
       // Render date header
       return (
         <View style={styles.dateHeader}>
-          <Text style={styles.dateHeaderText}>{convertDate(item.date, '/', false)}</Text>
+          <Text style={styles.dateHeaderText}>
+            {convertDate(item.date, "/", false)}
+          </Text>
         </View>
       );
     }
@@ -100,16 +116,13 @@ const ChatPage = () => {
         <Text style={styles.messageText}>{item.message}</Text>
         <Text style={styles.timestamp}>
           {item.senderName} •{" "}
-          {item.sentAt?.toDate().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          {item.sentAt
+            ?.toDate()
+            .toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </Text>
       </View>
     );
   };
-
-  const groupedMessages = groupMessagesByDate(messages).flatMap((group) => [
-    { date: group.date },
-    ...group.data,
-  ]);
 
   // SafeAreaView: Removes control of bottom due to conflict with KeyboardAvoidingView
   return (
@@ -127,11 +140,15 @@ const ChatPage = () => {
         <FlatList
           ref={flatListRef}
           data={groupedMessages}
-          keyExtractor={(item, index) => item.id || item.date || index.toString()}
+          keyExtractor={(item, index) =>
+            item.id || item.date || index.toString()
+          }
           renderItem={renderItem}
           contentContainerStyle={styles.messagesContainer}
           onLayout={() => flatListRef.current?.scrollToEnd({ animated: false })}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
+          onContentSizeChange={() =>
+            flatListRef.current?.scrollToEnd({ animated: false })
+          }
         />
 
         {/* Input */}

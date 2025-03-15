@@ -1,32 +1,41 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { FIRESTORE_DB } from '@/src/config/FirebaseConfig';
-import { collection, onSnapshot } from 'firebase/firestore';
-import { useAuth } from '@/src/context/AuthContext';
-import { Link } from 'expo-router';
-import { sortGroupsByDate } from '@/src/utils/sort';
-import { Group } from '@/src/utils/types';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import React, { useEffect, useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { FIRESTORE_DB } from "@/src/config/FirebaseConfig";
+import { collection, onSnapshot } from "firebase/firestore";
+import { useAuth } from "@/src/context/AuthContext";
+import { Link } from "expo-router";
+import { sortGroupsByDate } from "@/src/utils/sort";
+import { Group } from "@/src/utils/types";
 
 const ChatGroups = () => {
   const [groups, setGroups] = useState<Group[]>([]);
   const { user } = useAuth();
 
   useEffect(() => {
-    const ref = collection(FIRESTORE_DB, 'groups');
+    const ref = collection(FIRESTORE_DB, "groups");
     const unsubscribe = onSnapshot(ref, (snapshot) => {
       const groupsData = snapshot.docs
         .map((doc) => ({
           id: doc.id,
-          name: doc.data().name as string, 
+          name: doc.data().name as string,
           creator: doc.data().creator as string,
           users: doc.data().users as string[],
           trip_id: doc.data().trip_id as string,
           date_of_trip: doc.data().date_of_trip as string,
         }))
-        .filter((group) => group.creator === user?.uid || group.users?.includes(user?.uid)); // Filter by creator or users array
-    
+        .filter(
+          (group) =>
+            group.creator === user?.uid || group.users?.includes(user?.uid)
+        ); // Filter by creator or users array
+
       setGroups(sortGroupsByDate(groupsData));
     });
 
@@ -43,11 +52,10 @@ const ChatGroups = () => {
     );
   }
 
-
-const parseDate = (dateString) => {
-  const [day, month, year] = dateString.split("-");
-  return new Date(`20${year}-${month}-${day}`); // Adjust year to full format (e.g., "24" -> "2024")
-};
+  const parseDate = (dateString) => {
+    const [day, month, year] = dateString.split("-");
+    return new Date(`20${year}-${month}-${day}`); // Adjust year to full format (e.g., "24" -> "2024")
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -57,14 +65,19 @@ const parseDate = (dateString) => {
             <TouchableOpacity style={styles.groupCard}>
               {/* Group Icon */}
               <View style={styles.iconContainer}>
-                <Ionicons name="people-circle-outline" size={40} color="#6A5ACD" />
+                <Ionicons
+                  name="people-circle-outline"
+                  size={40}
+                  color="#6A5ACD"
+                />
               </View>
 
               {/* Group Information */}
               <View style={styles.groupInfo}>
                 <Text style={styles.groupName}>{group.name}</Text>
                 <Text style={styles.groupDate}>
-                  Trip Date: {parseDate(group.date_of_trip).toLocaleDateString()}
+                  Trip Date:{" "}
+                  {parseDate(group.date_of_trip).toLocaleDateString()}
                 </Text>
                 {group.creator === user?.uid && (
                   <Text style={styles.groupBadge}>Created by You</Text>
@@ -72,7 +85,12 @@ const parseDate = (dateString) => {
               </View>
 
               {/* Chevron Icon */}
-              <Ionicons name="chevron-forward" size={24} color="#6A5ACD" style={styles.chevronIcon} />
+              <Ionicons
+                name="chevron-forward"
+                size={24}
+                color="#6A5ACD"
+                style={styles.chevronIcon}
+              />
             </TouchableOpacity>
           </Link>
         ))}
