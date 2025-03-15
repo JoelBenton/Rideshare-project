@@ -1,28 +1,37 @@
 import React, { useState, useRef, useEffect } from "react";
-import {
-  Modal,
-  View,
-  TextInput,
-  Alert,
-  StyleSheet,
-} from "react-native";
-import MapView, { Marker, UrlTile } from "react-native-maps";
+import { Modal, View, TextInput, Alert, StyleSheet } from "react-native";
+import MapView, { Marker, PROVIDER_GOOGLE, UrlTile } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomButton from "./CustomButton";
 
-const LocationSearchModal = ({ visible, onClose, onLocationSelected, location = null }) => {
+const LocationSearchModal = ({
+  visible,
+  onClose,
+  onLocationSelected,
+  location = null,
+}) => {
   const [query, setQuery] = useState(""); // User's search query
-  const [marker, setMarker] = useState(location ? {
-    coordinate: { latitude: location.latitude, longitude: location.longitude },
-    title: location.name || "Selected Location",
-  } : null); // Initial marker if location is provided
+  const [marker, setMarker] = useState(
+    location
+      ? {
+          coordinate: {
+            latitude: location.latitude,
+            longitude: location.longitude,
+          },
+          title: location.name || "Selected Location",
+        }
+      : null
+  ); // Initial marker if location is provided
   const mapRef = useRef(null); // Reference to the map
 
   useEffect(() => {
     // If a location is passed, set the map to focus on it
     if (location) {
       setMarker({
-        coordinate: { latitude: location.latitude, longitude: location.longitude },
+        coordinate: {
+          latitude: location.latitude,
+          longitude: location.longitude,
+        },
         title: location.name || "Selected Location",
       });
 
@@ -113,7 +122,11 @@ const LocationSearchModal = ({ visible, onClose, onLocationSelected, location = 
       const data = await response.json();
       const fullAddress = data.display_name || "Unknown location";
 
-      onLocationSelected({ lat: latitude as string, lng: longitude as string, address: fullAddress as string });
+      onLocationSelected({
+        lat: latitude as string,
+        lng: longitude as string,
+        address: fullAddress as string,
+      });
       onClose();
     }
   };
@@ -128,9 +141,14 @@ const LocationSearchModal = ({ visible, onClose, onLocationSelected, location = 
             value={query}
             onChangeText={setQuery}
           />
-          <CustomButton title="Search" onPress={searchLocation} buttonStyle={styles.button} />
+          <CustomButton
+            title="Search"
+            onPress={searchLocation}
+            buttonStyle={styles.button}
+          />
 
           <MapView
+            provider={PROVIDER_GOOGLE}
             ref={mapRef}
             style={styles.map}
             initialRegion={{
@@ -140,10 +158,6 @@ const LocationSearchModal = ({ visible, onClose, onLocationSelected, location = 
               longitudeDelta: 0.3,
             }}
           >
-            <UrlTile
-              urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              maximumZ={19}
-            />
             {marker && (
               <Marker
                 coordinate={marker.coordinate}
@@ -155,8 +169,16 @@ const LocationSearchModal = ({ visible, onClose, onLocationSelected, location = 
           </MapView>
 
           <View style={styles.buttonContainer}>
-            <CustomButton title="Confirm Location" onPress={confirmLocation} buttonStyle={styles.button} />
-            <CustomButton title="Cancel" onPress={onClose} buttonStyle={styles.button} />
+            <CustomButton
+              title="Confirm Location"
+              onPress={confirmLocation}
+              buttonStyle={styles.button}
+            />
+            <CustomButton
+              title="Cancel"
+              onPress={onClose}
+              buttonStyle={styles.button}
+            />
           </View>
         </View>
       </SafeAreaView>

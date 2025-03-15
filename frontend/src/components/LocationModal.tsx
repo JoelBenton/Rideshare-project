@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, View, Modal, Text, TouchableOpacity } from "react-native";
-import MapView, { Marker, UrlTile } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE, UrlTile } from "react-native-maps";
 
 const LocationModal = ({ visible, location, onClose, draggable = false }) => {
   if (!location) return null; // Early return if no location is provided
@@ -11,6 +11,7 @@ const LocationModal = ({ visible, location, onClose, draggable = false }) => {
     <Modal visible={visible} animationType="slide">
       <View style={styles.modalContainer}>
         <MapView
+          provider={PROVIDER_GOOGLE}
           style={styles.map}
           region={{
             latitude: latitude,
@@ -21,10 +22,6 @@ const LocationModal = ({ visible, location, onClose, draggable = false }) => {
           // Set to 'true' to ensure updates to the region reflect on the map
           showsUserLocation={true}
         >
-          <UrlTile
-            urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            maximumZ={19}
-          />
           <Marker
             coordinate={{ latitude, longitude }}
             title={name}

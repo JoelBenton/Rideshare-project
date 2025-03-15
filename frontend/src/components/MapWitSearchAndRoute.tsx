@@ -1,12 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
-import {
-  Modal,
-  View,
-  TextInput,
-  Alert,
-  StyleSheet,
-} from "react-native";
-import MapView, { Marker, Polyline, UrlTile } from "react-native-maps";
+import { Modal, View, TextInput, Alert, StyleSheet } from "react-native";
+import MapView, {
+  Marker,
+  Polyline,
+  PROVIDER_GOOGLE,
+  UrlTile,
+} from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CustomButton from "./CustomButton";
 
@@ -96,15 +95,25 @@ const MapWithSearchAndRoute = ({
     if (!marker) {
       Alert.alert("Error", "Please select a location.");
       return;
-    } else if (marker.coordinate.latitude === startLocation.lat && marker.coordinate.longitude === startLocation.lng) {
+    } else if (
+      marker.coordinate.latitude === startLocation.lat &&
+      marker.coordinate.longitude === startLocation.lng
+    ) {
       Alert.alert("Error", "Please select a different location.");
       return;
-    } else if (marker.coordinate.latitude === endLocation.lat && marker.coordinate.longitude === endLocation.lng) {
+    } else if (
+      marker.coordinate.latitude === endLocation.lat &&
+      marker.coordinate.longitude === endLocation.lng
+    ) {
       Alert.alert("Error", "Please select a different location.");
       return;
     }
     // Handle confirm logic here
-    onRequest({latitude: marker.coordinate.latitude, longitude: marker.coordinate.longitude, address: marker.title});
+    onRequest({
+      latitude: marker.coordinate.latitude,
+      longitude: marker.coordinate.longitude,
+      address: marker.title,
+    });
   };
 
   return (
@@ -117,9 +126,14 @@ const MapWithSearchAndRoute = ({
             value={query}
             onChangeText={setQuery}
           />
-          <CustomButton title="Search" onPress={searchLocation} buttonStyle={styles.button} />
+          <CustomButton
+            title="Search"
+            onPress={searchLocation}
+            buttonStyle={styles.button}
+          />
 
           <MapView
+            provider={PROVIDER_GOOGLE}
             ref={mapRef}
             style={styles.map}
             initialRegion={{
@@ -129,10 +143,6 @@ const MapWithSearchAndRoute = ({
               longitudeDelta: 0.3,
             }}
           >
-            <UrlTile
-              urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              maximumZ={19}
-            />
             {startLocation && (
               <Marker
                 coordinate={{
@@ -175,8 +185,16 @@ const MapWithSearchAndRoute = ({
           </MapView>
 
           <View style={styles.buttonContainer}>
-            <CustomButton title="Cancel" onPress={onCancel} buttonStyle={styles.button} />
-            <CustomButton title="Confirm" onPress={handleOnConfirm} buttonStyle={styles.button} />
+            <CustomButton
+              title="Cancel"
+              onPress={onCancel}
+              buttonStyle={styles.button}
+            />
+            <CustomButton
+              title="Confirm"
+              onPress={handleOnConfirm}
+              buttonStyle={styles.button}
+            />
           </View>
         </View>
       </SafeAreaView>

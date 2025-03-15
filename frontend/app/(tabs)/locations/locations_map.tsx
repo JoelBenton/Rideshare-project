@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { StyleSheet, View, TextInput, Button, Alert, Text } from "react-native";
-import MapView, { Marker, UrlTile } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE, UrlTile } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function App() {
@@ -110,7 +110,10 @@ export default function App() {
       }
     } catch (error) {
       console.error("Error fetching driving time:", error);
-      Alert.alert("Error", "Unable to fetch driving time. Please try again later.");
+      Alert.alert(
+        "Error",
+        "Unable to fetch driving time. Please try again later."
+      );
     }
   };
 
@@ -165,7 +168,10 @@ export default function App() {
           value={startQuery}
           onChangeText={setStartQuery}
         />
-        <Button title="Search Start" onPress={() => searchLocation(startQuery, "start")} />
+        <Button
+          title="Search Start"
+          onPress={() => searchLocation(startQuery, "start")}
+        />
       </View>
       <View style={styles.searchContainer}>
         <TextInput
@@ -174,9 +180,13 @@ export default function App() {
           value={endQuery}
           onChangeText={setEndQuery}
         />
-        <Button title="Search End" onPress={() => searchLocation(endQuery, "end")} />
+        <Button
+          title="Search End"
+          onPress={() => searchLocation(endQuery, "end")}
+        />
       </View>
       <MapView
+        provider={PROVIDER_GOOGLE}
         ref={mapRef}
         style={styles.map}
         initialRegion={{
@@ -186,10 +196,6 @@ export default function App() {
           longitudeDelta: 0.3,
         }}
       >
-        <UrlTile
-          urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maximumZ={19}
-        />
         {startMarker && (
           <Marker
             coordinate={startMarker.coordinate}
@@ -212,7 +218,9 @@ export default function App() {
 
       {drivingTime !== null && (
         <View style={styles.timeContainer}>
-          <Text style={styles.timeText}>Estimated Driving Time: {drivingTime} minutes</Text>
+          <Text style={styles.timeText}>
+            Estimated Driving Time: {drivingTime} minutes
+          </Text>
         </View>
       )}
 

@@ -1,12 +1,11 @@
 import React from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-} from "react-native";
-import MapView, { Marker, Polyline, UrlTile } from "react-native-maps";
+import { StyleSheet, View, Text, TouchableOpacity, Modal } from "react-native";
+import MapView, {
+  Marker,
+  Polyline,
+  PROVIDER_GOOGLE,
+  UrlTile,
+} from "react-native-maps";
 
 const MapWithRouteModal = ({
   visible,
@@ -25,6 +24,7 @@ const MapWithRouteModal = ({
     <Modal visible={visible} animationType="slide" transparent={true}>
       <View style={styles.modalContainer}>
         <MapView
+          provider={PROVIDER_GOOGLE}
           style={styles.map}
           region={{
             latitude: mainMarker?.latitude || startLocation.latitude,
@@ -34,11 +34,6 @@ const MapWithRouteModal = ({
           }}
           showsUserLocation={true}
         >
-          <UrlTile
-            urlTemplate="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            maximumZ={19}
-          />
-
           {/* Main Marker (if provided) */}
           {mainMarker && (
             <Marker
@@ -88,8 +83,14 @@ const MapWithRouteModal = ({
           {/* Polyline */}
           <Polyline
             coordinates={[
-              { latitude: startLocation.latitude, longitude: startLocation.longitude },
-              { latitude: endLocation.latitude, longitude: endLocation.longitude },
+              {
+                latitude: startLocation.latitude,
+                longitude: startLocation.longitude,
+              },
+              {
+                latitude: endLocation.latitude,
+                longitude: endLocation.longitude,
+              },
             ]}
             strokeColor="#0000FF"
             strokeWidth={3}
@@ -103,7 +104,10 @@ const MapWithRouteModal = ({
               <TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
                 <Text style={styles.buttonText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.continueButton} onPress={onContinue}>
+              <TouchableOpacity
+                style={styles.continueButton}
+                onPress={onContinue}
+              >
                 <Text style={styles.buttonText}>Continue</Text>
               </TouchableOpacity>
             </>
