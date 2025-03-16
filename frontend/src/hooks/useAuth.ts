@@ -6,12 +6,13 @@ import {
 import { FIREBASE_AUTH } from '@/src/config/FirebaseConfig';
 import { setUserInformation } from '@/src/utils/auth';
 import { checkEmail } from '@/src/api/whitelist';
+import Constants from 'expo-constants';
 
 export const useAuth = () => {
   const handleAuth = async (email: string, password: string, username: string, isSignUp: boolean, role: string = "user") => {
     try {
       let userCredential: UserCredential | null = null;
-      const apiEndpoint = process.env.EXPO_PUBLIC_BACKEND_URL;
+      const apiEndpoint = Constants.expoConfig?.extra?.backendUrl;
 
       // Step 1: Validate username and email on the backend if signing up
       if (isSignUp) {

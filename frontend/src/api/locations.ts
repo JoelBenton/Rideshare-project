@@ -1,7 +1,8 @@
 import { Location, createLocation as cLocation } from '@/src/utils/types';
 import { fetchWithAuth } from './config';
+import Constants from 'expo-constants';
 
-const apiEndpoint = process.env.EXPO_PUBLIC_BACKEND_URL;
+const apiEndpoint = Constants.expoConfig?.extra?.backendUrl;
 
 export const fetchLocations = () =>
     fetchWithAuth(`${apiEndpoint}/locations`, { method: 'GET' });

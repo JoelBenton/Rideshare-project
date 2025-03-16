@@ -1,7 +1,8 @@
-import { CreatePassenger, UpdatePassenger, Passenger, OwnerUpdatePassenger } from "../utils/types";
+import Constants from "expo-constants";
+import { CreatePassenger, UpdatePassenger, OwnerUpdatePassenger } from "../utils/types";
 import { fetchWithAuth } from "./config";
 
-const apiEndpoint = process.env.EXPO_PUBLIC_BACKEND_URL;
+const apiEndpoint = Constants.expoConfig?.extra?.backendUrl;
 
 export const fetchTripPassengers = (trip_id: string) => {
     return fetchWithAuth(`${apiEndpoint}/trips/${trip_id}/markers`, { method: 'GET' });

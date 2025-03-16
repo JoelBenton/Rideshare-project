@@ -1,6 +1,7 @@
+import Constants from 'expo-constants';
 import { fetchWithAuth } from './config';
 
-const apiEndpoint = process.env.EXPO_PUBLIC_BACKEND_URL;
+const apiEndpoint = Constants.expoConfig?.extra?.backendUrl;
 
 export const fetchWhitelist = () =>
     fetchWithAuth(`${apiEndpoint}/whitelist`, { method: 'GET' });
