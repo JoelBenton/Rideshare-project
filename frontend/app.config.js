@@ -1,4 +1,4 @@
-import "dotenv/config"; // ✅ Allows loading .env variables
+import "dotenv/config";
 
 export default {
   expo: {
@@ -37,7 +37,17 @@ export default {
       output: "static",
       favicon: "./assets/images/favicon.png",
     },
-    plugins: ["expo-router"],
+    plugins: [
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          android: {
+            usesCleartextTraffic: true,
+          },
+        },
+      ],
+    ],
     experiments: {
       typedRoutes: true,
     },
