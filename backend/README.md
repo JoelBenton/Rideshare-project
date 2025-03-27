@@ -46,11 +46,6 @@ Before setting it up in Portainer (If using), test the container to ensure it wo
 docker run -p 3333:3333 --env-file .env adonis-app
 ```
 
-- If you need hot reloading, mount the project directory:
-```
-docker run -p 3333:3333 -v /home/pi/adonis-app:/app adonis-app
-```
-
 ### 3. Deploy via Portainer
 
 1. Access Portainer
