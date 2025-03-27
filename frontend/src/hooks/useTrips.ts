@@ -72,7 +72,7 @@ export const useCreateTrip = (trip: cTrip, userId: string) => {
 export const useUpdateTrip = (id: string, trip: uTrip, userId: string) => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: () => updateTrip(id.toString(), trip),
+        mutationFn: () => updateTrip(id, trip),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.TRIPS });
             queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.UPCOMING_TRIPS });
@@ -89,11 +89,11 @@ export const useUpdateTrip = (id: string, trip: uTrip, userId: string) => {
     });
 }
 
-export const useDeleteTrip = (id: number, userId: string) => {
+export const useDeleteTrip = (id: string, userId: string) => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: () => deleteTrip(id.toString()),
+        mutationFn: () => deleteTrip(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.TRIPS });
             queryClient.invalidateQueries({ queryKey: TRIP_QUERY_KEYS.UPCOMING_TRIPS });

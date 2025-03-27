@@ -1,21 +1,23 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, TextInput, View, Switch, Alert } from 'react-native';
-import { defaultStyles } from '@/src/constants/themes';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import DropdownComponent from '@/src/components/DropdownComponent';
-import { useLocations } from '@/src/hooks/useLocations';
-import type { Location } from '@/src/utils/types';
-import LocationSearchModal from '@/src/components/LocationSearchModal';
-import CustomButton from '@/src/components/CustomButton';
-import MapWithRouteModal from '@/src/components/MapWithRouteModal';
-import { router } from 'expo-router';
-import { useDispatch, useSelector } from 'react-redux';
-import type { RootState, Dispatch } from '@/src/rematch/store';
+import React, { useState } from "react";
+import { StyleSheet, Text, TextInput, View, Switch, Alert } from "react-native";
+import { defaultStyles } from "@/src/constants/themes";
+import { SafeAreaView } from "react-native-safe-area-context";
+import DropdownComponent from "@/src/components/DropdownComponent";
+import { useLocations } from "@/src/hooks/useLocations";
+import type { Location } from "@/src/utils/types";
+import LocationSearchModal from "@/src/components/LocationSearchModal";
+import CustomButton from "@/src/components/CustomButton";
+import MapWithRouteModal from "@/src/components/MapWithRouteModal";
+import { router } from "expo-router";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState, Dispatch } from "@/src/rematch/store";
 
 const CreateLocations = () => {
-  const { startLocation, endLocation, startModalLocation, endModalLocation } = useSelector((state: RootState) => state.locations);
+  const { startLocation, endLocation, startModalLocation, endModalLocation } =
+    useSelector((state: RootState) => state.locations);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isMapWithRouteModalVisible, setIsMapWithRouteModalVisible] = useState(false);
+  const [isMapWithRouteModalVisible, setIsMapWithRouteModalVisible] =
+    useState(false);
   const [isEnd, setIsEnd] = useState(false);
 
   const dispatch = useDispatch<Dispatch>();
@@ -24,7 +26,7 @@ const CreateLocations = () => {
 
   const locationsData = (locations.data || []) as Location[];
 
-  const dropdownData = locationsData.map(location => ({
+  const dropdownData = locationsData.map((location) => ({
     label: location.name,
     value: location,
   }));
@@ -44,19 +46,29 @@ const CreateLocations = () => {
     }
   };
 
-  const handleModalSelected = (selectedLocation: { lat: string, lng: string, address: string }) => {
+  const handleModalSelected = (selectedLocation: {
+    lat: string;
+    lng: string;
+    address: string;
+  }) => {
     if (isEnd) {
-      dispatch.locations.setEndModalLocation({
-        latitude: selectedLocation.lat,
-        longitude: selectedLocation.lng,
-        address: selectedLocation.address,
-      }, {});
+      dispatch.locations.setEndModalLocation(
+        {
+          latitude: selectedLocation.lat,
+          longitude: selectedLocation.lng,
+          address: selectedLocation.address,
+        },
+        {}
+      );
     } else {
-      dispatch.locations.setStartModalLocation({
-        latitude: selectedLocation.lat,
-        longitude: selectedLocation.lng,
-        address: selectedLocation.address,
-      }, {});
+      dispatch.locations.setStartModalLocation(
+        {
+          latitude: selectedLocation.lat,
+          longitude: selectedLocation.lng,
+          address: selectedLocation.address,
+        },
+        {}
+      );
     }
   };
 
@@ -69,7 +81,7 @@ const CreateLocations = () => {
     const endLocationFinal = endModalLocation || endLocation;
 
     if (!startLocationFinal || !endLocationFinal) {
-      Alert.alert('Error', 'Please select both start and end locations.');
+      Alert.alert("Error", "Please select both start and end locations.");
     } else {
       setIsMapWithRouteModalVisible(true);
     }
@@ -77,7 +89,7 @@ const CreateLocations = () => {
 
   const handleContinue = () => {
     setIsMapWithRouteModalVisible(false);
-    router.push('/(tabs)/(trips)/create_form');
+    router.push("/(tabs)/(trips)/create_form");
   };
 
   return (
@@ -112,7 +124,9 @@ const CreateLocations = () => {
         <Text style={styles.label}>Address</Text>
         <TextInput
           style={styles.multiLineInput}
-          value={currentModalLocation?.address || currentLocation?.address || ''}
+          value={
+            currentModalLocation?.address || currentLocation?.address || ""
+          }
           editable={false}
           multiline
           numberOfLines={4}
@@ -138,7 +152,7 @@ const CreateLocations = () => {
         onCancel={() => setIsMapWithRouteModalVisible(false)}
         onContinue={() => {
           setIsMapWithRouteModalVisible(false);
-          router.push('/(tabs)/(trips)/create_form')
+          router.push("/(tabs)/(trips)/create_form");
         }}
         startLocation={startLocation || startModalLocation}
         endLocation={endLocation || endModalLocation}
@@ -153,55 +167,55 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#F9F9F9',
+    backgroundColor: "#F9F9F9",
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: defaultStyles.primaryColor,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 20,
   },
   switchContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     marginVertical: 20,
   },
   switchLabel: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginHorizontal: 8,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
   multiLineInput: {
     height: 100,
     borderWidth: 1,
-    borderColor: '#DDD',
+    borderColor: "#DDD",
     borderRadius: 8,
     padding: 10,
     marginBottom: 12,
-    backgroundColor: '#F5F5F5',
-    textAlignVertical: 'top',
-    color: '#555',
+    backgroundColor: "#F5F5F5",
+    textAlignVertical: "top",
+    color: "#555",
   },
   label: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#555',
+    fontWeight: "600",
+    color: "#555",
     marginBottom: 8,
     marginTop: 12,
   },
   searchButton: {
     marginTop: 12,
-    alignSelf: 'center',
+    alignSelf: "center",
     paddingHorizontal: 20,
     paddingVertical: 10,
     backgroundColor: defaultStyles.primaryColor,
@@ -209,17 +223,17 @@ const styles = StyleSheet.create({
   },
   sectionContainer: {
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 2,
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     borderRadius: 8,
     padding: 16,
   },
   bottomButtonContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
     left: 20,
     right: 20,

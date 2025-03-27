@@ -1,5 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Whitelist from '#models/whitelist'
+import admin from 'firebase-admin'
+import User from '#models/user'
 
 export default class WhitelistsController {
     public async checkEmail({ request, response }: HttpContext) {
@@ -46,8 +48,23 @@ export default class WhitelistsController {
                 return response.notFound({ error: 'whitelist/email-not-found' })
             }
 
+            try {
+                const firebaseuser = await admin.auth().getUserByEmail(email)
+                if (firebaseuser) {
+                    const firebaseUid = firebaseuser.uid
+                    const databaseUser = await User.findBy('firebase_uid', firebaseUid)
+                    if (databaseUser) {
+                        await databaseUser.delete()
+                    }
+
+                    await admin.auth().deleteUser(firebaseUid)
+                }
+            } catch {} // Only delete user if exists, so ignore errors
+
             await emailToRemove.delete()
-            return response.ok({ message: 'Email removed from whitelist' })
+            return response.ok({
+                message: 'Email removed from whitelist and user deleted if exists',
+            })
         } catch (error) {
             return response.internalServerError({ error: 'whitelist/processing-error' })
         }
