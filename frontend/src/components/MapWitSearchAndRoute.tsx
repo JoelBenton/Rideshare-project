@@ -1,5 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Modal, View, TextInput, Alert, StyleSheet } from "react-native";
+import {
+  Modal,
+  View,
+  TextInput,
+  Alert,
+  StyleSheet,
+  Platform,
+} from "react-native";
 import MapView, {
   Marker,
   Polyline,
@@ -15,6 +22,7 @@ const MapWithSearchAndRoute = ({
   onRequest,
   startLocation,
   endLocation,
+  enabled = true,
 }) => {
   const [query, setQuery] = useState(""); // User's search query
   const [marker, setMarker] = useState(null); // User-placed marker
@@ -24,8 +32,8 @@ const MapWithSearchAndRoute = ({
     if (startLocation) {
       mapRef.current?.animateToRegion(
         {
-          latitude: startLocation.latitude,
-          longitude: startLocation.longitude,
+          latitude: Number(startLocation.latitude),
+          longitude: Number(startLocation.longitude),
           latitudeDelta: 0.3,
           longitudeDelta: 0.3,
         },
@@ -57,12 +65,17 @@ const MapWithSearchAndRoute = ({
       if (data && data.length > 0) {
         const { lat, lon, display_name } = data[0];
 
+        if (!lat || !lon) {
+          Alert.alert("Error", "Location not found. Try again.");
+          return;
+        }
+
         const latitude = parseFloat(lat);
         const longitude = parseFloat(lon);
 
         setMarker({
           coordinate: { latitude, longitude },
-          title: display_name,
+          title: display_name || "Selected Location",
         });
 
         mapRef.current?.animateToRegion(
@@ -96,14 +109,14 @@ const MapWithSearchAndRoute = ({
       Alert.alert("Error", "Please select a location.");
       return;
     } else if (
-      marker.coordinate.latitude === startLocation.lat &&
-      marker.coordinate.longitude === startLocation.lng
+      marker.coordinate.latitude === Number(startLocation.lat) &&
+      marker.coordinate.longitude === Number(startLocation.lng)
     ) {
       Alert.alert("Error", "Please select a different location.");
       return;
     } else if (
-      marker.coordinate.latitude === endLocation.lat &&
-      marker.coordinate.longitude === endLocation.lng
+      marker.coordinate.latitude === Number(endLocation.lat) &&
+      marker.coordinate.longitude === Number(endLocation.lng)
     ) {
       Alert.alert("Error", "Please select a different location.");
       return;
@@ -116,6 +129,9 @@ const MapWithSearchAndRoute = ({
     });
   };
 
+  if (!enabled) {
+    return null;
+  }
   return (
     <Modal visible={visible} animationType="slide" transparent={true}>
       <SafeAreaView style={styles.modalContainer}>
@@ -133,31 +149,31 @@ const MapWithSearchAndRoute = ({
           />
 
           <MapView
-            provider={PROVIDER_GOOGLE}
+            {...(Platform.OS === "android" && { provider: PROVIDER_GOOGLE })}
             ref={mapRef}
             style={styles.map}
             initialRegion={{
-              latitude: startLocation.lat,
-              longitude: startLocation.lng,
+              latitude: Number(startLocation.lat),
+              longitude: Number(startLocation.lng),
               latitudeDelta: 0.3,
               longitudeDelta: 0.3,
             }}
           >
-            {startLocation && (
+            {startLocation && startLocation.lat && startLocation.lng && (
               <Marker
                 coordinate={{
-                  latitude: startLocation.lat,
-                  longitude: startLocation.lng,
+                  latitude: Number(startLocation.lat),
+                  longitude: Number(startLocation.lng),
                 }}
                 title="Start Location"
                 pinColor="green"
               />
             )}
-            {endLocation && (
+            {endLocation && endLocation.lat && endLocation.lng && (
               <Marker
                 coordinate={{
-                  latitude: endLocation.lat,
-                  longitude: endLocation.lng,
+                  latitude: Number(endLocation.lat),
+                  longitude: Number(endLocation.lng),
                 }}
                 title="End Location"
                 pinColor="red"
@@ -166,8 +182,14 @@ const MapWithSearchAndRoute = ({
             {startLocation && endLocation && (
               <Polyline
                 coordinates={[
-                  { latitude: startLocation.lat, longitude: startLocation.lng },
-                  { latitude: endLocation.lat, longitude: endLocation.lng },
+                  {
+                    latitude: Number(startLocation.lat),
+                    longitude: Number(startLocation.lng),
+                  },
+                  {
+                    latitude: Number(endLocation.lat),
+                    longitude: Number(endLocation.lng),
+                  },
                 ]}
                 strokeColor="#0000FF"
                 strokeWidth={3}

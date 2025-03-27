@@ -520,7 +520,7 @@ const TripDetailsPage = () => {
                   ? [styles.requestButton, { opacity: 0.5 }]
                   : styles.requestButton
               }
-              onPress={() => handleRequestToJoin()}
+              onPress={handleRequestToJoin}
               disabled={isRequestLoading}
             >
               <Text style={styles.requestButtonText}>Request to Join</Text>
