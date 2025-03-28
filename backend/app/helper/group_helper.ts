@@ -22,6 +22,18 @@ export const startGroup = async (
     }
 }
 
+export const updateGroup = async (group_id: string, group_name: string) => {
+    try {
+        const groupRef = admin.firestore().collection('groups').doc(group_id)
+        await groupRef.update({
+            name: group_name,
+        })
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: error }
+    }
+}
+
 export const addUsersToGroup = async (group_id: string, users_uid: string[]) => {
     try {
         const groupRef = admin.firestore().collection('groups').doc(group_id)

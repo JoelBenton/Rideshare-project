@@ -2,7 +2,7 @@ import Trip from '#models/trip'
 import Vehicle from '#models/vehicle'
 import { tripSchema, tripUpdateSchema } from '#validators/trip'
 import type { HttpContext } from '@adonisjs/core/http'
-import { startGroup } from '../helper/group_helper.js'
+import { deleteGroup, getGroupIdByTripId, startGroup, updateGroup } from '../helper/group_helper.js'
 
 const formatTrip = (trip: Trip) => {
     return {
@@ -332,6 +332,7 @@ export default class TripsController {
     async update({ params, request, response }: HttpContext) {
         try {
             const trip = await Trip.findOrFail(params.id)
+            const group = await getGroupIdByTripId(trip.id)
 
             const { authUid, ...filteredPayload } = request.all()
 
@@ -384,6 +385,11 @@ export default class TripsController {
             trip.origin_long = validatedPayload.origin_long || trip.origin_long
 
             await trip.save()
+
+            if (group.group) {
+                await updateGroup(group.group, trip.trip_name)
+            }
+
             return response.ok({ msg: 'Trip updated successfully' })
         } catch (error) {
             if (error.code === 'E_ROW_NOT_FOUND') {
@@ -402,10 +408,16 @@ export default class TripsController {
     async destroy({ params, request, response }: HttpContext) {
         try {
             const trip = await Trip.findOrFail(params.id)
+            const group = await getGroupIdByTripId(trip.id)
             if (trip.driver_uid !== request.all().authUid) {
                 return response.forbidden({ error: 'trips/forbidden' })
             }
             await trip.delete()
+
+            if (group.group) {
+                await deleteGroup(group.group)
+            }
+
             return response.noContent()
         } catch (error) {
             if (error.code === 'E_ROW_NOT_FOUND') {
