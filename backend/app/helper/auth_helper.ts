@@ -8,13 +8,25 @@ const getFirebaseAuthUsersWithClaims = async () => {
     let result = await admin.auth().listUsers()
     for (const user of result.users) {
         const claims = user.customClaims || {}
-        const role = claims.role || 'user' // Default to 'user' if no role claim exists
+        let role = claims.role || 'user' // Default to 'user' if no role claim exists
 
-        // If the role claim doesn't exist, set it to 'user'
-        if (!claims.role) {
-            await admin.auth().setCustomUserClaims(user.uid, { role: 'user' })
+        const databaseUser = await User.query().where('firebase_uid', user.uid).first()
+        if (databaseUser) {
+            // If the user exists in SQLite, update the role to match SQLite
+            if (databaseUser.role !== role) {
+                role = databaseUser.role
+            }
         }
 
+        // If the role claim doesn't exist, set it to the current role
+        if (!claims.role) {
+            await admin.auth().setCustomUserClaims(user.uid, { role: role })
+        } else if (claims.role !== role) {
+            // If the role claim exists but is different, update it
+            await admin.auth().setCustomUserClaims(user.uid, { role: role })
+        }
+
+        // Push user data to the array
         users.push({ uid: user.uid, username: user.displayName || '', role })
     }
 
