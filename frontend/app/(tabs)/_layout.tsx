@@ -29,7 +29,6 @@ export default () => {
 
   FIREBASE_AUTH.currentUser?.getIdTokenResult(true).then((token) => {
     const role = token.claims.role;
-    console.log(token);
     if (role == "admin") {
       setAdmin(true);
     }

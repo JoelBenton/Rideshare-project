@@ -1,10 +1,5 @@
 import React, { useContext } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { ActivityIndicator } from "react-native-paper";
 import { useAllTripsForUser } from "@/src/hooks/useTrips"; // Replace with your actual data-fetching hook
 import { AuthContext } from "@/src/context/AuthContext";
@@ -16,7 +11,9 @@ import { router } from "expo-router";
 
 const RideHistory: React.FC = () => {
   const { user } = useContext(AuthContext);
-  const { data: trips = [], isLoading } = useAllTripsForUser(user?.uid); // Fetch trips via a custom hook or API
+  const { data: trips = { data: [] }, isLoading } = useAllTripsForUser(
+    user?.uid
+  ); // Fetch trips via a custom hook or API
 
   return (
     <SafeAreaView style={styles.container}>
@@ -27,7 +24,13 @@ const RideHistory: React.FC = () => {
           {isLoading ? (
             <ActivityIndicator size="large" />
           ) : trips.data.length > 0 ? (
-            sortTripsByDate(trips.data).map((trip) => <RideCard key={trip.id} data={trip} onPress={() => router.push(`/(tabs)/(trips)/${trip.id}`)} />)
+            sortTripsByDate(trips.data).map((trip) => (
+              <RideCard
+                key={trip.id}
+                data={trip}
+                onPress={() => router.push(`/(tabs)/(trips)/${trip.id}`)}
+              />
+            ))
           ) : (
             <NoRidesAvailableCard />
           )}
