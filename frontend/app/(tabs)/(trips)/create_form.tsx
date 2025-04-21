@@ -1,31 +1,32 @@
-import React, { useContext, useEffect, useReducer, useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { defaultStyles } from '@/src/constants/themes';
-import CustomDateTimePicker from '@/src/components/CustomDateTimePicker';
-import SelectDateTimeButton from '@/src/components/SelectDateTimeButton';
-import { Ionicons } from '@expo/vector-icons';
-import CustomButton from '@/src/components/CustomButton';
-import { RootState } from '@/src/rematch/store';
-import { useSelector, useDispatch } from 'react-redux';
-import { createTrip as Ctrip } from '@/src/utils/types';
-import { useCreateTrip } from '@/src/hooks/useTrips';
-import { router } from 'expo-router';
-import { AuthContext } from '@/src/context/AuthContext';
+import React, { useContext, useEffect, useReducer, useState } from "react";
+import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { defaultStyles } from "@/src/constants/themes";
+import CustomDateTimePicker from "@/src/components/CustomDateTimePicker";
+import SelectDateTimeButton from "@/src/components/SelectDateTimeButton";
+import { Ionicons } from "@expo/vector-icons";
+import CustomButton from "@/src/components/CustomButton";
+import { RootState } from "@/src/rematch/store";
+import { useSelector, useDispatch } from "react-redux";
+import { createTrip as Ctrip } from "@/src/utils/types";
+import { useCreateTrip } from "@/src/hooks/useTrips";
+import { router } from "expo-router";
+import { AuthContext } from "@/src/context/AuthContext";
 
 const CreateForm = () => {
   const [isPickerVisible, setPickerVisible] = useState(false);
-  const {startLocation, endLocation, startModalLocation, endModalLocation } = useSelector((state: RootState) => state.locations);
+  const { startLocation, endLocation, startModalLocation, endModalLocation } =
+    useSelector((state: RootState) => state.locations);
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-  const [mode, setMode] = useState<'date' | 'time'>('date');
+  const [mode, setMode] = useState<"date" | "time">("date");
   const [seats, setSeats] = useState(1);
-  const [tripName, setTripName] = useState('');
-  const [vehicleReg, setVehicleReg] = useState('');
-  const [carMake, setCarMake] = useState('');
-  const [carColor, setCarColor] = useState('');
+  const [tripName, setTripName] = useState("");
+  const [vehicleReg, setVehicleReg] = useState("");
+  const [carMake, setCarMake] = useState("");
+  const [carColor, setCarColor] = useState("");
   const [tripData, setTripData] = useState<Ctrip | null>(null);
   const [create, setCreate] = useState(false);
-  
+
   const dispatch = useDispatch();
   const { user, initialized } = useContext(AuthContext);
 
@@ -34,28 +35,31 @@ const CreateForm = () => {
       if (create) {
         // Call the mutation
         const success = await createTripMutation();
-  
+
         if (!success) {
-          Alert.alert('Error', 'Failed to create trip. Please try again.');
+          Alert.alert("Error", "Failed to create trip. Please try again.");
           return;
         }
-  
+
         // Show success alert
-        Alert.alert('Success', 'Trip created successfully.');
+        Alert.alert("Success", "Trip created successfully.");
         dispatch.locations.resetLocations();
-        router.push('/(tabs)/home');
+        router.push("/(tabs)/home");
       }
     }
-  
+
     createTrip();
   }, [create, tripData]);
 
-  const { mutateAsync: createTripMutation } = useCreateTrip(tripData, user?.uid);
+  const { mutateAsync: createTripMutation } = useCreateTrip(
+    tripData,
+    user?.uid
+  );
 
   const incrementSeats = () => setSeats((prev) => prev + 1);
   const decrementSeats = () => setSeats((prev) => (prev > 0 ? prev - 1 : 0));
 
-  const openPicker = (pickerMode: 'date' | 'time') => {
+  const openPicker = (pickerMode: "date" | "time") => {
     setPickerVisible(true);
     setMode(pickerMode);
   };
@@ -68,7 +72,19 @@ const CreateForm = () => {
 
   const confirm = async () => {
     if (!tripName || !vehicleReg || !carMake || !carColor || !selectedDate) {
-      Alert.alert('Please fill in all the fields');
+      Alert.alert("Please fill in all the fields");
+      return;
+    }
+
+    if (seats <= 0) {
+      Alert.alert("Please select at least one seat");
+      return;
+    }
+
+    if (selectedDate.getTime() < new Date().getTime() + 1000 * 60 * 60) {
+      // 1 hour in the future
+      // Check if the selected date is in the past or less than 1 hour from now
+      Alert.alert("Please select a date atleast 1 hour in the future");
       return;
     }
 
@@ -78,10 +94,10 @@ const CreateForm = () => {
       [
         {
           text: "Cancel",
-          onPress: () => { 
+          onPress: () => {
             dispatch.locations.resetLocations();
-            return 
-        },
+            return;
+          },
           style: "cancel",
         },
         {
@@ -95,13 +111,25 @@ const CreateForm = () => {
               Color: carColor,
               seats_available: seats,
               date_of_trip: selectedDate.toISOString(),
-              destination_lat: endModalLocation ? String(endModalLocation.latitude) : String(endLocation.latitude),
-              destination_long: endModalLocation ? String(endModalLocation.longitude) : String(endLocation.longitude),
-              destination_address: endModalLocation ? endModalLocation.address : endLocation.address,
-              origin_lat: startModalLocation ? String(startModalLocation.latitude) : String(startLocation.latitude),
-              origin_long: startModalLocation ? String(startModalLocation.longitude) : String(startLocation.longitude),
-              origin_address: startModalLocation ? startModalLocation.address : startLocation.address,
-            }; 
+              destination_lat: endModalLocation
+                ? String(endModalLocation.latitude)
+                : String(endLocation.latitude),
+              destination_long: endModalLocation
+                ? String(endModalLocation.longitude)
+                : String(endLocation.longitude),
+              destination_address: endModalLocation
+                ? endModalLocation.address
+                : endLocation.address,
+              origin_lat: startModalLocation
+                ? String(startModalLocation.latitude)
+                : String(startLocation.latitude),
+              origin_long: startModalLocation
+                ? String(startModalLocation.longitude)
+                : String(startLocation.longitude),
+              origin_address: startModalLocation
+                ? startModalLocation.address
+                : startLocation.address,
+            };
 
             setTripData(tripData);
 
@@ -115,27 +143,27 @@ const CreateForm = () => {
 
   const cancel = () => {
     Alert.alert(
-      'Discard changes',
-      'Are you sure you want to discard your changes?',
+      "Discard changes",
+      "Are you sure you want to discard your changes?",
       [
         {
-          text: 'Cancel',
-          onPress: () => { 
+          text: "Cancel",
+          onPress: () => {
             dispatch.locations.resetLocations();
-            return 
+            return;
           },
-          style: 'cancel',
+          style: "cancel",
         },
         {
-          text: 'OK',
+          text: "OK",
           onPress: () => {
-            router.push('/(tabs)/home');
+            router.push("/(tabs)/home");
           },
         },
       ],
       { cancelable: false }
     );
-  }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -146,20 +174,27 @@ const CreateForm = () => {
           iconName="calendar"
           value={
             selectedDate
-              ? selectedDate.toLocaleDateString('en-UK', { day: 'numeric', month: 'short', year: '2-digit' })
-              : 'Open Date Picker'
+              ? selectedDate.toLocaleDateString("en-UK", {
+                  day: "numeric",
+                  month: "short",
+                  year: "2-digit",
+                })
+              : "Open Date Picker"
           }
-          onPress={() => openPicker('date')}
+          onPress={() => openPicker("date")}
         />
         <SelectDateTimeButton
           label="Select Time"
           iconName="time-outline"
           value={
             selectedDate
-              ? selectedDate.toLocaleTimeString('en-UK', { hour: '2-digit', minute: '2-digit' })
-              : 'Open Time Picker'
+              ? selectedDate.toLocaleTimeString("en-UK", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "Open Time Picker"
           }
-          onPress={() => openPicker('time')}
+          onPress={() => openPicker("time")}
         />
       </View>
       <Text style={styles.titleIndentStyle}>Name</Text>
@@ -191,7 +226,7 @@ const CreateForm = () => {
         />
       </View>
 
-      <Text style={[styles.titleIndentStyle, { textAlign: 'center' }]}>
+      <Text style={[styles.titleIndentStyle, { textAlign: "center" }]}>
         How many seats are available?
       </Text>
       <View style={styles.counterContainer}>
@@ -212,9 +247,17 @@ const CreateForm = () => {
 
       <View style={{ flexGrow: 1 }} />
 
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <CustomButton title="Cancel" buttonStyle={{ flex: 1, marginRight: 10 }} onPress={cancel} />
-        <CustomButton title="Create Trip" buttonStyle={{ flex: 1, marginLeft: 10 }} onPress={confirm} />
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <CustomButton
+          title="Cancel"
+          buttonStyle={{ flex: 1, marginRight: 10 }}
+          onPress={cancel}
+        />
+        <CustomButton
+          title="Create Trip"
+          buttonStyle={{ flex: 1, marginLeft: 10 }}
+          onPress={confirm}
+        />
       </View>
 
       <CustomDateTimePicker
@@ -234,54 +277,54 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#F9F9F9',
+    backgroundColor: "#F9F9F9",
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: defaultStyles.primaryColor,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 20,
   },
   timePickerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   titleIndentStyle: {
     marginLeft: 10,
     marginTop: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 18,
   },
   fullTextInput: {
     height: 50,
-    borderColor: '#D1D5DB',
+    borderColor: "#D1D5DB",
     borderWidth: 1,
     borderRadius: 8,
     paddingLeft: 10,
     margin: 16,
     fontSize: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
   },
   carDetailsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginHorizontal: 16,
   },
   smallTextInput: {
     flex: 1,
     height: 50,
-    borderColor: '#D1D5DB',
+    borderColor: "#D1D5DB",
     borderWidth: 1,
     borderRadius: 8,
     paddingLeft: 10,
     fontSize: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
   },
   counterContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     marginVertical: 20,
   },
   counterIcon: {
@@ -289,9 +332,9 @@ const styles = StyleSheet.create({
   },
   counterValue: {
     fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    backgroundColor: 'lightgray',
+    fontWeight: "bold",
+    textAlign: "center",
+    backgroundColor: "lightgray",
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 20,

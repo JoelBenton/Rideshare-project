@@ -82,6 +82,16 @@ const CreateLocations = () => {
 
     if (!startLocationFinal || !endLocationFinal) {
       Alert.alert("Error", "Please select both start and end locations.");
+    } else if (
+      startLocationFinal.latitude === endLocationFinal.latitude &&
+      startLocationFinal.longitude === endLocationFinal.longitude
+    ) {
+      Alert.alert("Error", "Start and end locations cannot be the same.");
+    } else if (startLocationFinal.address === endLocationFinal.address) {
+      Alert.alert(
+        "Error",
+        "Start and end locations cannot be the same address."
+      );
     } else {
       setIsMapWithRouteModalVisible(true);
     }
