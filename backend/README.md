@@ -58,7 +58,7 @@ In the Image field, type: `adonis-app`
     5.	Mount Volumes (Optional, for Hot Reloading): `/home/pi/adonis-app:/app`
     6.	Set Environment Variables
        1. Click “Env” and add: `Key: PORT Value: 3333`
-    7. Command to run: `NPM RUN DEV`
+    7. Command to run: `./start.sh` and entrypoint to `sh`
     8. Click Deploy Container
 
 
